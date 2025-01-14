@@ -1,11 +1,15 @@
 # Project4375
 Fullstack application for CIS 4375
 
+# Warning
+Ensure you're always making a Private Branch first before starting working on a feature.
+
 # Requirements to Run the Application
 Must have the following: 
 - VSCode
 - MySQL Community Edition
 - NodeJS
+- Git Installed
 
 # Installing dependencies
 1. Must have NodeJS installed.
@@ -25,6 +29,6 @@ Must have the following:
 4. Run the command "npm run frontend" to begin the frontend server's operation. A link should be revealed in the VSCode terminal.
 
 # Testing changes 
-- Ensure each file are saved (CTRL + S) before checking/testing them.
+- Ensure each file is saved (CTRL + S) before checking/testing them.
 - Frontend: Simply refresh the webpage. If you still don't see the changes, kill the terminal associated with the frontend, then rerun frontend.
 - Backend: Must kill the terminal associated with the backend, then rerun backend.
