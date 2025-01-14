@@ -2,7 +2,7 @@
 Fullstack application for CIS 4375
 
 # Warning
-Ensure you're always making a Private Branch first before starting working on a feature.
+Ensure you're always making a Private Branch first before starting on a feature.
 
 # Requirements to Run the Application
 Must have the following: 
