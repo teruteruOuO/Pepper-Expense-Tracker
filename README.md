@@ -20,7 +20,7 @@ Must have the following:
 6. Kill the terminal where you ran this command by clicking the trash button on the bottom right.
 7. Redo Step 3.
 8. Run the command "npm run frontend-install" to install frontend folder's dependencies.
-9. Redo Step 3.
+9. Redo Step 6
 
 # Running both Frontend and Backend
 1. Press CTRL + SHIFT + ` and VSCode terminal should open beneath the screen.
