@@ -55,6 +55,7 @@
                 name="password"
                 id="password"
                 required
+                autocomplete
                 v-model="signUpInformation.credentials.password">
             </li>
             <li>
@@ -64,6 +65,7 @@
                 name="confirm-password"
                 id="confirm-password"
                 required
+                autocomplete
                 v-model="signUpInformation.credentials.confirm_password">
             </li>
             <li>
@@ -78,7 +80,7 @@
     <section class="feedback">
         <p class="confirm-password-feedback">{{ confirmPasswordFeedback}}</p>
         <p class="password-regex-feedback">{{ passwordRegExFeedback }}</p>
-        <p :class="{ 'backend-feedback-success': backendServerFeedback }">{{ backendServerFeedback }}</p>
+        <p :class="{ 'backend-feedback-success': backendServerFeedbackSuccess, 'feedback': !backendServerFeedbackSuccess }">{{ backendServerFeedback }}</p>
     </section>
 </section>
 </template>
@@ -92,6 +94,7 @@ import { ref, reactive, computed } from 'vue';
 const router = useRouter();
 const isLoading = ref(false);
 const backendServerFeedback = ref("");
+const backendServerFeedbackSuccess = ref(false);
 const signUpInformation = reactive({
     name: 
         {
@@ -138,7 +141,7 @@ const passwordRegExFeedback = computed( () => {
 
 // Ensure optional data like initial is always null when left empty 
 const initial = computed(() => {
-    if (signUpInformation.name.initial === "") {
+    if (signUpInformation.name.initial === ""  || signUpInformation.name.initial === " ") {
         return null
     } else {
         return signUpInformation.name.initial
@@ -171,6 +174,7 @@ const signUpUser = async () => {
             email: signUpInformation.email
         }
         const response = await axios.post("/api/account/sign-up", body);
+        backendServerFeedbackSuccess.value = true;
         backendServerFeedback.value = `${response.data.message}. You will be redirected to the Login page after 5 seconds.`;
 
         // Clear the Sign Up Form inputs
@@ -189,6 +193,8 @@ const signUpUser = async () => {
     } catch (err) {
         console.error("An error occured in the SignupFormComponent");
         console.error(err);
+
+        backendServerFeedbackSuccess.value = false;
         backendServerFeedback.value = err.response.data.message;
         isLoading.value = false;
 
