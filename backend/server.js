@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 
 // Import routes
 import user from './routes/user.js';
+import page from './routes/page.js';
+import account from './routes/account.js';
 
 // Allow hidden backend variables (from .env) to be used in the application
 dotenv.config();
@@ -27,6 +29,8 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 
 // Setup middleware routes
 app.use('/api/user', user);
+app.use('/api/page', page);
+app.use('/api/account', account);
 
 // Start backend server operation
 app.listen(process.env.APP_PORT, () => {

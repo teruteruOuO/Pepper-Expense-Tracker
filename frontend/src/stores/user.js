@@ -1,17 +1,20 @@
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive } from 'vue';
 import { defineStore } from 'pinia';
 
 export const useUserStore = defineStore('user', () => {
-    const username = ref('');
+    const userInformation = reactive({
+        username: "",
+        first_name: ""
+    });
+
     const settings = reactive({
-        page_mode: "",
         currency_sign: "",
         currency_code: ""
     });
 
     const resetUserStore = () => {
-        username.value = "";
-        settings.page_mode = "";
+        userInformation.username = "";
+        userInformation.first_name = "";
         settings.currency_sign = "";
         settings.currency_code = "";
     }
@@ -19,5 +22,5 @@ export const useUserStore = defineStore('user', () => {
     // Forgot password email being stored in the local storage for easy access in case verification code must be resent
     const email = ref('');
 
-    return { username, settings, resetUserStore }
+    return { userInformation, settings, resetUserStore }
 }, { persist: { enabled: true } });
