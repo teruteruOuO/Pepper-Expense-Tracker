@@ -1,5 +1,5 @@
 <template>
-<main>
+<main class="login-view">
     <h1>Login View</h1>
 </main>
 </template>
