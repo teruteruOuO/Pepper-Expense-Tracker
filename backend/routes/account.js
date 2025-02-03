@@ -124,9 +124,117 @@ router.post('/sign-up', async (req, res) => {
             }
         }
 
-        res.status(500).json({ message: 'A server error occured. Check console for more information.' });
+        res.status(500).json({ message: 'A server error occured while signing up. Check console for more information.' });
         return;
     }
+});
+
+// Login route
+router.post('/login', async (req, res) => {
+    try {
+        // Initialize variables
+        let selectQuery;
+        let resultQuery;
+        let { username, password } = req.body;
+        let databaseCredentials;
+        let isPasswordValid;
+        let token;
+        const isLoggedIn = req.cookies['token'] ? true : false;
+        Logger.log('Initalizing /api/user/login route');
+
+
+        /* This section validates incoming data provided by the user */
+        // If user is logged in while logging in, then throw an error
+        if (isLoggedIn) {
+            Logger.error('Error: A user is attempting to login while already logged in with a valid token');
+            res.status(403).json({ message: 'You must log out before logging in' });
+            return;
+        }
+
+        // Throw an error if username and password are not in the request body
+        if (!username || !password) {
+            Logger.error('Error: Username and password fields are missing while logging in');
+            res.status(400).json({ message: 'Username and password fields are missing while logging in' });
+            return;
+        }
+
+        // Find username and password from the database that matches the given user credentials
+        username = username.replace(/\s+/g, ' ').trim().toLowerCase();
+        selectQuery = "SELECT user_first_name AS first_name, user_username AS username, user_password AS password, user_active AS active, c.currency_code AS currency_code, currency_sign FROM user u JOIN currency c ON u.currency_code = c.currency_code WHERE user_username = ?;";
+        resultQuery = await executeReadQuery(selectQuery, [username]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: Cannot find an instance of a user with the username ${username}, meaning the provided credentials is most likely wrong`);
+            res.status(400).json({ message: "Incorrect credentials" });
+            return;
+        }
+        databaseCredentials = resultQuery[0];
+
+        // If the user instance is not active, then refuse to login and inform the user
+        if (databaseCredentials.active !== 1) {
+            Logger.error(`Error: User ${username} is disabled, so logging them in is not possible unless user_active is reverted back to 1`);
+            res.status(400).json({ message: 'This account is disabled. Contact the administrator to enable the account back on' });
+            return;
+        }
+
+        // Validate the body password from the database password
+        isPasswordValid = await bcrypt.compare(password, databaseCredentials.password);
+        Logger.log(`Password validation result: ${isPasswordValid}`);
+        databaseCredentials.password = "";
+        if (!isPasswordValid) {
+            Logger.error('Error: User password from the body does not match the password from the database');
+            res.status(400).json({ message: 'Incorrect credentials' });
+            return;
+        }
+        Logger.log('Credentials validation success');
+
+
+        // Create token
+        if (!process.env.JWT_SECRET) {
+            throw new Error('JWT_SECRET is not defined in environment variables');
+        }
+        token = jwt.sign({ username: databaseCredentials.username, first_name: databaseCredentials.first_name }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        // Set an http-only cookie using the provided token
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 3600000 // 1 hour in milliseconds
+        });
+
+        Logger.log("User is successfully logged in");
+        res.status(200).json({ 
+            message: 'Login Success',
+            user: {
+                username: databaseCredentials.username,
+                first_name: databaseCredentials.first_name,
+                currency_settings: {
+                    currency_code: databaseCredentials.currency_code,
+                    currency_sign: databaseCredentials.currency_sign
+                }
+            }
+        });
+        return;
+
+    } catch (err) {
+        console.error('Error: A server error occured in /api/account/login');
+        console.error(err);
+        res.status(500).json({ message: 'A server error occured while logging in. Check console for more information.' });
+        return;
+    }
+});
+
+// Logout route
+router.post('/logout', async (req, res) => {
+    Logger.log('Initalizing /api/user/logout route');
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+    });
+    
+    res.status(200).json({ message: 'Logout success' });
+    return;
 });
 
 export default router;
