@@ -1,8 +1,15 @@
 <template>
 <main class="dashboard-view">
     <h1>Dashboard Page</h1>
+    <p>Hello {{ user.userInformation.first_name }}! Your current currency settings involve using the {{ user.settings.currency_sign }} sign</p>
+    <LogoutComponent />
+
 </main>
 </template>
 
 <script setup>
+import { useUserStore } from '@/stores/user';
+import LogoutComponent from '@/components/one-time/LogoutComponent.vue';
+
+const user = useUserStore();
 </script>
