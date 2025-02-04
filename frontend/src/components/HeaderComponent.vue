@@ -3,11 +3,11 @@
     <h1>This is the header</h1>
     <nav>
         <ul v-if="isLoggedIn">
-            <li>Dashboard</li>
-            <li>Transaction</li>
-            <li>Budget</li>
-            <li>Savings</li>
-            <li>Account</li>
+            <li><RouterLink :to="{ name: 'dashboard' }">Dashboard</RouterLink></li>
+            <li><RouterLink :to="{ name: 'transaction' }">Transaction</RouterLink></li>
+            <li><RouterLink :to="{ name: 'budget' }">Budget</RouterLink></li>
+            <li><RouterLink :to="{ name: 'savings' }">Savings</RouterLink></li>
+            <li><RouterLink :to="{ name: 'account' }">Account</RouterLink></li>
         </ul>
         <ul v-else>
             <li><RouterLink :to="{ name: 'login' }">Login</RouterLink></li>
