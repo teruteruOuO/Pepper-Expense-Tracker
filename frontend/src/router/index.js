@@ -22,6 +22,30 @@ const router = createRouter({
             component: () => import('../views/DashboardView.vue')
         },
         {
+            path: '/account',
+            name: 'account',
+            meta: { requiresAuth: true },
+            component: () => import('../views/AccountView.vue')
+        },
+        {
+            path: '/transaction',
+            name: 'transaction',
+            meta: { requiresAuth: true },
+            component: () => import('../views/TransactionView.vue')
+        },
+        {
+            path: '/savings',
+            name: 'savings',
+            meta: { requiresAuth: true },
+            component: () => import('../views/SavingsView.vue')
+        },
+        {
+            path: '/budget',
+            name: 'budget',
+            meta: { requiresAuth: true },
+            component: () => import('../views/BudgetView.vue')
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: { name: 'dashboard' }
         }
