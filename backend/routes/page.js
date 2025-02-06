@@ -10,7 +10,7 @@ router.get('/verify-token', async (req, res) => {
 
     // Check if the token exists
     if (!token) {
-        Logger.error('User has no token while accessing a secured page');
+        Logger.error('User has no token while routing to a page');
         res.status(401).json({ message: 'Unauthorized: Token is missing or the token has expired' });
         return;
     }

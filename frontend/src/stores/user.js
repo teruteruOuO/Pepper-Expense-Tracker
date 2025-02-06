@@ -19,8 +19,5 @@ export const useUserStore = defineStore('user', () => {
         settings.currency_code = "";
     }
 
-    // Forgot password email being stored in the local storage for easy access in case verification code must be resent
-    const email = ref('');
-
     return { userInformation, settings, resetUserStore }
 }, { persist: { enabled: true } });
