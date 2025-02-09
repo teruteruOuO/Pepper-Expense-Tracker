@@ -18,6 +18,7 @@ const user = useUserStore();
 const logoutUser = async () => {
     await axios.post('/api/account/logout');
     user.resetUserStore();
+    localStorage.removeItem('user');
     router.push({ name: 'login' });
 }
 </script>

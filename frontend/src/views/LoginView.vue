@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import LoginFormComponent from '@/components/one-time/LoginFormComponent.vue';
+import LoginFormComponent from '@/components/one-time/login/LoginFormComponent.vue';
 </script>
 
 <style scoped>

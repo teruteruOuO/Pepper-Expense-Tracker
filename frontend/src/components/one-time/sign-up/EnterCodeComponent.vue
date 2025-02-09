@@ -78,7 +78,7 @@ const validateCode = async () => {
     try {
         // Validate user code input and the the code from the database
         const body = { code: codeFromUser.value, email: emailInformation.emailStatus.email }
-        const response = await axios.post('/api/account/sign-up/validate-code', body);
+        const response = await axios.post('/api/account/validate-code', body);
         codeFromUser.value = "";
         console.log(response.data.message);
 

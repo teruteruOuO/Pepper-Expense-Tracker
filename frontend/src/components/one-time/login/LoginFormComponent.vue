@@ -35,6 +35,10 @@
         </ul>
     </form>
 
+    <section class="forgot-password-link">
+        <p><RouterLink :to="{ name: 'forgot-password' }">Forgot your password?</RouterLink></p>
+    </section>
+
     <section class="feedback">
         <p>{{ backendFeedback }}</p>
     </section>
@@ -44,6 +48,7 @@
 
 <script setup>
 import axios from 'axios';
+import { RouterLink } from 'vue-router';
 import { ref, reactive, computed } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRouter } from 'vue-router';

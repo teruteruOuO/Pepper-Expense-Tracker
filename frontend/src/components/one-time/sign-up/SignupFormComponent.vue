@@ -137,7 +137,7 @@ const passwordRegExFeedback = computed( () => {
     } else {
         return null;
     }
-})
+});
 
 // Ensure optional data like initial is always null when left empty 
 const initial = computed(() => {
@@ -209,7 +209,8 @@ const signupUser = async () => {
             signupInformation.emailStatus.completed = true;
             signupInformation.emailStatus.email = "";
             signupInformation.verifyEmailComponent();
-            router.push({ name: 'login' }) 
+            localStorage.removeItem('email-signup');
+            router.push({ name: 'login' }); 
         }, 5000);
 
 

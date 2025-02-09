@@ -41,7 +41,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 
         if (!answer) {
             console.log("User cancelled navigation.");
-            next(false); // ❌ Prevents navigation if the user cancels the prompt
+            next(false); // Prevents navigation if the user cancels the prompt
             return;
         }
 

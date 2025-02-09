@@ -380,14 +380,14 @@ router.post('/sign-up/resend-code', async (req, res) => {
 });
 
 // Validate user code input and database code ()
-router.post('/sign-up/validate-code', async (req, res) => {
+router.post('/validate-code', async (req, res) => {
     try {
         let selectQuery;
         let resultQuery; 
         let deleteQuery;
         let { code, email } = req.body;
         let userCodeInstance;
-        Logger.log('Initializing /api/account/sign-up/validate-code');
+        Logger.log('Initializing /api/account/validate-code');
 
         // Throw error if code or email is not in the body request
         if (!code || !email) {
@@ -428,7 +428,7 @@ router.post('/sign-up/validate-code', async (req, res) => {
         Logger.log(resultQuery);
 
         Logger.log('Successfully validate user code')
-        res.status(200).json({ message: 'Code validation success. Going to the third stage of sign-up process.' });
+        res.status(200).json({ message: 'Code validation success.' });
         return;
 
     } catch (err) {
@@ -470,6 +470,209 @@ router.delete('/sign-up/delete-email/:email', async (req, res) => {
         Logger.error('Error: A server error occured while deleting user instance associated with the temporary user account.');
         Logger.error(err);
         res.status(500).json({ message: 'A server error occured while deleting the email.' });
+        return;
+    }
+});
+
+// Send a code to the user's email during Forgot Password process
+router.post('/forgot-password/send-code', async (req, res) => {
+    try {
+        // Initialize variables
+        let selectQuery;
+        let insertQuery;
+        let deleteQuery;
+        let resultQuery;
+        let databaseResult;
+        let code = generateCode(6);
+        let { email } = req.body;
+        const token = req.cookies['token'];
+        const myEmail = {
+            service: "gmail",
+            auth: {
+                user: process.env.NODEMAILER_EMAIL,
+                pass: process.env.NODEMAILER_PASSWORD
+            },
+            pool: true, // Use connection pooling
+            maxConnections: 1,
+            maxMessages: 5,
+            rateLimit: 5,
+            tls: { rejectUnauthorized: false } // Bypass certificate issues
+        };
+        
+        let mailOptions = {
+            from: `"Ube's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
+            to: "",
+            subject: "Forgot Password Code",
+            text: `Your code is: ${code}. The code will expire in 10 minutes. After that, you must resend a new code again.`
+
+        }
+        let transporter = nodemailer.createTransport(myEmail);
+        Logger.log('Initializing /api/account/forgot-password/send-code');
+
+        // Throw an error if there's an existing valid token
+        if (token) {
+            Logger.error("Error: A user attempts to use this route while logged in or have an existing valid token.");
+            res.status(401).json({ message: 'You must not be logged in while accessing this resource.'});
+            return;
+        }
+
+        // Throw an error if email does not exist in the body request
+        if (!email) {
+            Logger.error("Error: Cannot find email in the body request.");
+            res.status(401).json({ message: 'You must provide an email before we can send you a code to your email.'});
+            return;
+        }
+
+        // Neutralize the email
+        email = email.replace(/\s+/g, ' ').trim().toLowerCase();
+        Logger.log(`Email is neutralized to all lowercase: ${email}`);
+
+        // Verify that the user with the provided email exists in the database
+        selectQuery = "SELECT user_id, user_email FROM user WHERE user_email = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [email]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: User with the email ${email} does not exists in the database.`);
+            res.status(400).json({ message: `An account with the email ${email} does not exist in the system.`});
+            return;
+        }
+        databaseResult = resultQuery[0];
+
+        Logger.log(`Successfully retrieved user using the email: ${email}`);
+        Logger.log(databaseResult);
+
+        // Request the database server to delete any one time code instances for the user
+        deleteQuery = "DELETE FROM one_time_code WHERE user_id = ?;";
+        resultQuery = await executeWriteQuery(deleteQuery, [databaseResult.user_id]);
+        Logger.log(deleteQuery);
+        Logger.log('Successfully deleted all one time code instances for the user.');
+
+        // Request the database server to make a one time code instance for the user
+        insertQuery = "INSERT INTO one_time_code (user_id, code_description, code_status) VALUES (?, ?, ?);";
+        Logger.log(insertQuery);
+        resultQuery = await executeWriteQuery(insertQuery, [databaseResult.user_id, code, 'inuse']);
+
+        // Send the one-time code to the user's email
+        mailOptions.to = databaseResult.user_email;
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                Logger.error('Error: An error occured while sending the code to the user');
+                Logger.error(error);
+                res.status(500).json({ message: 'A server error occured while sending the email to you. Please try again' });
+                return;
+
+            } else {
+                Logger.log('Successfully sent the email to the user');
+                res.status(200).json({ 
+                    message: `Successfully sent the email to ${databaseResult.user_email}, check your email for the code (You might have to check in your spam folder if possible)`,
+                    email: databaseResult.user_email
+                });
+                return;
+            }
+        });
+
+
+    } catch (err) {
+        Logger.error("Error: A server error occured while sending a code to the user's email in /api/account/forgot-password/send-code");
+        Logger.error(err);
+        res.status(500).json({ message: "A server error occured while sending a code to your email. Please try again later."});
+        return;
+    }
+});
+
+// Delete one time code instances for the user each time they discontinue their progress in Forgot Password
+router.delete('/forgot-password/delete-codes/:email', async (req, res) => {
+    try {
+        let selectQuery;
+        let deleteQuery;
+        let resultQuery;
+        let databaseResult;
+        const { email } = req.params;
+        Logger.log('Initializing /api/account/forgot-password/delete-code');
+
+        // Throw an error if email does not exist in the parameters
+        if (!email) {
+            Logger.error(`Error: email in the parameters is required to continue to process.`);
+            res.status(400).json({ message: 'Email must be present in the parameters to use this resource.' });
+            return;
+        }
+
+        // Throw an error if there's no user instance with the provided email
+        // Verify that the user with the provided email exists in the database
+        selectQuery = "SELECT user_id, user_email FROM user WHERE user_email = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [email]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: User with the email ${email} does not exists in the database.`);
+            res.status(400).json({ message: `An account with the email ${email} does not exist in the system.`});
+            return;
+        }
+        databaseResult = resultQuery[0];
+
+        Logger.log(`Successfully retrieved user using the email: ${email}`);
+        Logger.log(databaseResult);
+
+        // Request the database server to delete any one time code instances for the user
+        deleteQuery = "DELETE FROM one_time_code WHERE user_id = ?;";
+        resultQuery = await executeWriteQuery(deleteQuery, [databaseResult.user_id]);
+        Logger.log(deleteQuery);
+        Logger.log('Successfully deleted all one time code instances for the user.');
+        res.status(200).json({ message: `Successfully delete one time code instances for the user with the email ${databaseResult.user_email}`});
+        return;
+
+    } catch (err) {
+        Logger.error(`Error: An error occured while deleting all one time code instances for the user in /api/account/forgot-password/delete-code`);
+        res.status(500).json({ message: 'An error occured while deleting all one time code instances for the user.' });
+        return;
+    }
+});
+
+// Change user's password during the Password Recovery process
+router.post('/forgot-password/change-password', async (req, res) => {
+    try {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        let updateQuery;
+        let resultQuery;
+        let { new_password, email } = req.body;
+        Logger.log('Initializing /api/account/forgot-password/change-password');
+
+        // Throw an error if new password or email do not exist in the request body
+        if (!new_password || !email) {
+            Logger.error(`Error: User is missing either the new password or their email in the request body.`);
+            res.status(400).json({ message: 'Your new password and email must be provided before you can change your password.'});
+            return;
+        }
+
+        /* Throw an error if password does not meet the requirements:
+            - Contains at least one uppercase letter
+            - Contains at least one lowercase letter
+            - Contains at least one number
+            - Contains at least one special character
+        */
+        if (!passwordRegex.test(new_password)) {
+            Logger.error('Error: User provided a weak password');
+            res.status(400).json({ message: 'Your password must contain at least one upper case and lowercase letters, one number, and one special character'});
+            return;
+        }
+
+        /* Begin processing data */
+        // Hash user password
+        new_password = await bcrypt.hash(new_password, 10);
+        Logger.log('Successfully hashed user password');
+
+        // Update user's password in the database
+        updateQuery = "UPDATE user SET user_password = ? WHERE user_email = ?;";
+        resultQuery = await executeWriteQuery(updateQuery, [new_password, email]);
+
+        Logger.log(`Successfully updated the user's password!`);
+        res.status(200).json({ message: 'Successfully updated your password.'});
+        return;
+
+
+    } catch (err) { 
+        Logger.error(`Error: A server error occured while changing the user's password in /api/account/forgot-password/change-password.`);
+        Logger.error(err);
+        res.status(500).json({ message: 'A server error occured while changing your password. Please try again later.'});
         return;
     }
 });
