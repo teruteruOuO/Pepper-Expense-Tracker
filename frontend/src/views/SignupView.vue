@@ -12,10 +12,10 @@
 </template>
 
 <script setup>
-import VerifyEmailComponent from '@/components/one-time/VerifyEmailComponent.vue';
-import EnterCodeComponent from '@/components/reusable/EnterCodeComponent.vue';
-import SignupFormComponent from '@/components/one-time/SignupFormComponent.vue';
-import CancelSignUpComponent from '@/components/one-time/CancelSignUpComponent.vue';
+import VerifyEmailComponent from '@/components/one-time/sign-up/VerifyEmailComponent.vue';
+import EnterCodeComponent from '@/components/one-time/sign-up/EnterCodeComponent.vue';
+import SignupFormComponent from '@/components/one-time/sign-up/SignupFormComponent.vue';
+import CancelSignUpComponent from '@/components/one-time/sign-up/CancelSignUpComponent.vue';
 import { useEmailSignup } from '@/stores/email-signup';
 
 const signupInformation = useEmailSignup();
