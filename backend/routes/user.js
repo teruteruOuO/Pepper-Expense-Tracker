@@ -215,4 +215,84 @@ router.put('/profile/:username', authorizeToken, async (req, res) => {
     }
 });
 
+// Update the user's password
+router.put('/change-password/:username', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let updateQuery;
+        let resultQuery;
+        let passwordMatch;
+        let { old_password, new_password } = req.body;
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        Logger.log('Initializing /api/user/change-password PUT route.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if either old or new password keys are not in the body request
+        if (!old_password || !new_password) {
+            Logger.error('Error: Old or New password keys are missing in the body request');
+            res.status(400).json({ message: "You must provide both the old and new password before you can update your password." });
+            return;
+        }
+        
+        /* Throw an error if password does not meet the requirements:
+            - Contains at least one uppercase letter
+            - Contains at least one lowercase letter
+            - Contains at least one number
+            - Contains at least one special character
+        */
+        if (!passwordRegex.test(new_password)) {
+            Logger.error('Error: User provided a weak password');
+            res.status(400).json({ message: 'Your password must contain at least one upper case and lowercase letters, one number, and one special character'});
+            return;
+        }
+
+        // Retrieve the current password
+        selectQuery = "SELECT user_password AS current_password FROM user WHERE user_username = ?;";
+        Logger.log(selectQuery)
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error('Error: Cannot find a user instance with the provided username');
+            res.status(404).json({ message: `User ${usernameFromParameter} does not exist.`});
+            return;
+        }
+        Logger.log('Successfully retrieved the password from the database');
+
+        // Compare plain text password from the body request to the hashed database password
+        passwordMatch = await bcrypt.compare(old_password, resultQuery[0].current_password);
+        if (!passwordMatch) {
+            Logger.error(`Error: The current password provided by the user does not match the password from the database.`);
+            return res.status(400).json({ message: 'The current password you provided is incorrect. Try again.' });
+        }
+        Logger.log('Provided old password and database password successfully match.');
+
+        // Hash the new password
+        new_password = await bcrypt.hash(new_password, 10);
+        Logger.log('Successfully hashed the new password');
+
+        // Update the password with the new password in the database.
+        updateQuery = "UPDATE user SET user_password = ? WHERE user_username = ?;";
+        Logger.log(updateQuery);
+        resultQuery = await executeWriteQuery(updateQuery, [new_password, usernameFromParameter]);
+
+        Logger.log('Successfully updated the password of the user.');
+        res.status(200).json({ message: 'Successfully updated your password.' });
+        return;
+
+    } catch (err) {
+        Logger.error(`A server error occured while trying to update the user's password in /api/user/change-password.`);
+        res.status(500).json({ message: 'A server error occured while attempting to update your password. Please try again later.' });
+        return;
+    }
+});
+
 export default router;
