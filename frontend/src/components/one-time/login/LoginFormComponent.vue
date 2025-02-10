@@ -49,7 +49,7 @@
 <script setup>
 import axios from 'axios';
 import { RouterLink } from 'vue-router';
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRouter } from 'vue-router';
 
@@ -78,8 +78,7 @@ const sendCredentials = async () => {
         // Store user's username, first name, and currency settings to the local storage
         user.userInformation.username = user_data.username;
         user.userInformation.first_name = user_data.first_name;
-        user.settings.currency_code = user_data.currency_settings.currency_code;
-        user.settings.currency_sign = user_data.currency_settings.currency_sign;
+        user.userInformation.currency_code = user_data.currency_code;
 
         // Redirect user to the dashboard page
         router.push({ name: 'dashboard' });

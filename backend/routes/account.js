@@ -756,10 +756,7 @@ router.post('/login', async (req, res) => {
             user: {
                 username: databaseCredentials.username,
                 first_name: databaseCredentials.first_name,
-                currency_settings: {
-                    currency_code: databaseCredentials.currency_code,
-                    currency_sign: databaseCredentials.currency_sign
-                }
+                currency_code: databaseCredentials.currency_code
             }
         });
         return;

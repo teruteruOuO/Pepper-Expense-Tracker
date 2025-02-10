@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
         Logger.log('Initializing /api/currency');
 
         // Retrieve currency options
-        selectQuery = "SELECT currency_code AS code, currency_name AS currency_name FROM currency;";
+        selectQuery = "SELECT currency_code AS code, currency_name AS name FROM currency;";
         resultQuery = await executeReadQuery(selectQuery);
         Logger.log(resultQuery);
 
