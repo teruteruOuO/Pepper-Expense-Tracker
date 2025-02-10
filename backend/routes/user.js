@@ -271,7 +271,8 @@ router.put('/change-password/:username', authorizeToken, async (req, res) => {
         passwordMatch = await bcrypt.compare(old_password, resultQuery[0].current_password);
         if (!passwordMatch) {
             Logger.error(`Error: The current password provided by the user does not match the password from the database.`);
-            return res.status(400).json({ message: 'The current password you provided is incorrect. Try again.' });
+            res.status(400).json({ message: 'The current password you provided is incorrect. Try again.' });
+            return;
         }
         Logger.log('Provided old password and database password successfully match.');
 
@@ -290,8 +291,136 @@ router.put('/change-password/:username', authorizeToken, async (req, res) => {
 
     } catch (err) {
         Logger.error(`A server error occured while trying to update the user's password in /api/user/change-password.`);
+        Logger.error(err);
         res.status(500).json({ message: 'A server error occured while attempting to update your password. Please try again later.' });
         return;
+
+    }
+});
+
+// Update the user's username
+router.put('/change-username/:username', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let updateQuery;
+        let resultQuery;
+        let passwordMatch;
+        let updatedToken;
+        let token = req.cookies['token'];
+        let decoded;
+        let { current_password, new_username } = req.body;
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        Logger.log('Initializing /api/user/change-username PUT route.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if either new username or current password keys are not in the body request
+        if (!current_password || !new_username) {
+            Logger.error('Error: New username and current password keys are missing in the body request');
+            res.status(400).json({ message: "You must provide your current password and new username before you can update your password." });
+            return;
+        }
+
+        // Throw an error if a username has white spaces
+        if (/\s/.test(new_username)) {
+            Logger.error('Error: User provided a username with white spaces');
+            res.status(400).json({ message: 'You must not include white spaces or special characters in your username'});
+            return;
+        }
+
+        // Neutralize the username
+        new_username = new_username.replace(/\s+/g, ' ').trim().toLowerCase();
+
+        // Retrieve the current password
+        selectQuery = "SELECT user_password AS current_password FROM user WHERE user_username = ?;";
+        Logger.log(selectQuery)
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error('Error: Cannot find a user instance with the provided username');
+            res.status(404).json({ message: `User ${usernameFromParameter} does not exist.`});
+            return;
+        }
+        Logger.log('Successfully retrieved the password from the database');
+
+        // Compare plain text password from the body request to the hashed database password
+        passwordMatch = await bcrypt.compare(current_password, resultQuery[0].current_password);
+        if (!passwordMatch) {
+            Logger.error(`Error: The current password provided by the user does not match the password from the database.`);
+            res.status(400).json({ message: 'The current password you provided is incorrect. Try again.' });
+            return;
+        }
+        Logger.log('Provided current password and database password successfully match.');
+
+        // Proceed to update the user's username
+        updateQuery = "UPDATE user SET user_username = ? WHERE user_username = ?;";
+        Logger.log(updateQuery);
+        resultQuery = await executeWriteQuery(updateQuery, [new_username, usernameFromParameter]);
+        Logger.log(resultQuery);
+        Logger.log(`Successfully updated the user's username.`);
+
+        // Re creating a token
+        // Decode the existing token (without verifying signature to avoid expiration issues)
+        decoded = jwt.decode(token);
+
+        // Remove the `exp` field to prevent conflicts
+        if (decoded.exp) {
+            delete decoded.exp;
+        }
+
+        // Update only the username while keeping other data intact
+        decoded.username = new_username;
+
+        // Re-sign the token with the updated `username`
+        updatedToken = jwt.sign(decoded, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        // Set the new token as an httpOnly cookie
+        res.cookie('token', updatedToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 3600000 // 1 hour
+        });
+        Logger.log('Update token (username)');
+
+        res.status(200).json({ 
+            message: 'Successfully updated your username along with your new token',
+            new_username: new_username
+        });
+        return;
+
+
+    } catch (err) {
+        Logger.error(`A server error occured while trying to update the user's username in /api/user/change-username.`);
+        Logger.error(err);
+
+        if (err instanceof Error) {
+            // Throw an error for a duplicated username entry
+            if (err.code.includes('ER_DUP_ENTRY') && err.sqlMessage.includes('user_username')) {
+                Logger.error('Error: User provided a username that already exists in the database');
+                res.status(409).json({ message: 'Username is already taken' });
+                return;
+            }
+
+            // Throw an error if username consists of white spaces
+            if (err.code === "ER_CHECK_CONSTRAINT_VIOLATED" && err.sqlMessage.includes('user_username_check')) {
+                Logger.error('Error: User provided a username with white spaces');
+                res.status(400).json({ message: 'Your username must not have a white space or any special characters' });
+                return;
+            }
+
+        }
+
+        res.status(500).json({ message: 'A server error occured while attempting to update your username. Please try again later.' });
+        return;
+
     }
 });
 

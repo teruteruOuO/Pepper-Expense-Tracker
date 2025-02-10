@@ -42,7 +42,7 @@ router.put('/sign-up/:email', async (req, res) => {
         // Throw an error if a username has white spaces
         if (/\s/.test(username)) {
             Logger.error('Error: User provided a username with white spaces');
-            res.status(400).json({ message: 'You must not include white spaces in your username'});
+            res.status(400).json({ message: 'You must not include white spaces or special characters in your username'});
             return;
         }
 
@@ -124,7 +124,7 @@ router.put('/sign-up/:email', async (req, res) => {
             // Throw an error if username consists of white spaces
             if (err.code === "ER_CHECK_CONSTRAINT_VIOLATED" && err.sqlMessage.includes('user_username_check')) {
                 Logger.error('Error: User provided a username with white spaces');
-                res.status(400).json({ message: 'Your username must not have a white space' });
+                res.status(400).json({ message: 'Your username must not have a white space or any special characters' });
                 return;
             }
 
