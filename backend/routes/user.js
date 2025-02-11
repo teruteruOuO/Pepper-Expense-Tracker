@@ -2,8 +2,9 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import authorizeToken  from '../utilities/authorize-token.js';
-import { executeWriteQuery, executeReadQuery } from '../utilities/pool.js';
+import { executeWriteQuery, executeReadQuery, executeTransaction } from '../utilities/pool.js';
 import Logger from '../utilities/logger.js';
+import generateCode from '../utilities/generate-code.js';
 import nodemailer from 'nodemailer';
 
 const router = express.Router();
@@ -421,6 +422,272 @@ router.put('/change-username/:username', authorizeToken, async (req, res) => {
         res.status(500).json({ message: 'A server error occured while attempting to update your username. Please try again later.' });
         return;
 
+    }
+});
+
+// Send a code to the user's new email before being able to update it
+router.post('/change-email/send-code/:username', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let queries;
+        let resultQuery;
+        const oneTimeCode = generateCode(6);
+        let userId;
+        let { new_email } = req.body;
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        const myEmail = {
+            service: "gmail",
+            auth: {
+                user: process.env.NODEMAILER_EMAIL,
+                pass: process.env.NODEMAILER_PASSWORD
+            },
+            pool: true, // Use connection pooling
+            maxConnections: 1,
+            maxMessages: 5,
+            rateLimit: 5,
+            tls: { rejectUnauthorized: false } // Bypass certificate issues
+        };
+        
+        let mailOptions = {
+            from: `"Ube's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
+            to: "",
+            subject: "Verification Code for Email Change",
+            text: `Your code is: ${oneTimeCode}. Remember that this code will expire in 10 minutes.`
+
+        }
+        let transporter = nodemailer.createTransport(myEmail);
+        Logger.log('Initializing /api/user/change-email/send-code.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if new_email key is not in the body request
+        if (!new_email) {
+            Logger.error('Error: New email is missing in the body request');
+            res.status(400).json({ message: "You must provide your new email before we can send you a one time code." });
+            return;
+        }
+
+        // Neutralize the email
+        new_email = new_email.replace(/\s+/g, ' ').trim().toLowerCase();
+        Logger.log(`New email is neutralized to all lowercase: ${new_email}`);
+
+        // Throw an error if the new email already exists in the database
+        selectQuery = "SELECT user_email AS email FROM user WHERE user_email = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [new_email]);
+        Logger.log(resultQuery);
+        if (resultQuery.length >= 1) {
+            Logger.error(`Error: email ${new_email} already exists in the database. Unable to proceed.`);
+            res.status(400).json({ message: `The new email you provided, ${new_email}, is already taken. Please try again with another email.`});
+            return;
+        }
+
+        // Retrieve the user's id 
+        selectQuery = "SELECT user_id FROM user WHERE user_username = ?;";
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: user with username ${usernameFromParameter} does not exist.`);
+            res.status(400).json({ message: `Unable to find user with the username ${usernameFromParameter}`});
+            return;
+        }
+        userId = resultQuery[0].user_id;
+
+        // Deletes all current one time code for the user while making a new one as well
+        queries = [
+            {
+                query: "DELETE FROM one_time_code WHERE user_id = ?;",
+                params: [userId]
+            },
+            {
+                query: 'INSERT INTO one_time_code (user_id, code_description, code_status) VALUES (?, ?, ?);',
+                params: [userId, oneTimeCode, 'inuse']
+            }
+        ]
+        Logger.log('Executing transaction...');
+        resultQuery = await executeTransaction(queries);
+        for (let query_instace of queries) {
+            Logger.log(query_instace.query);
+        }
+        Logger.log('Transaction result: ');
+        Logger.log(resultQuery);
+        Logger.log(`Successfully deleted codes for user #${userId} while making a new one`);
+
+        // Send the one time code to the user's email
+        mailOptions.to = new_email;
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                Logger.error('Error: An error occured while sending the code to the user');
+                Logger.error(error);
+                res.status(500).json({ message: 'A server error occured while sending the one time code to your email. Please try again' });
+                return;
+
+            } else {
+                Logger.log('Successfully sent the code to the new email');
+                res.status(200).json({ 
+                    message: `Successfully sent the code to ${new_email}, check your email for the code (You might have to check in your spam folder if possible)`,
+                    new_email: new_email  
+                });
+                return;
+            }
+        });
+
+    } catch (err) {
+        Logger.error(`A server error occured while trying to send code to the user's new email in /api/user/change-email/send-code.`);
+        Logger.error(err);
+        res.status(500).json({ message: 'A server error occured while attempting to send you a code to your new email. Please try again later.' });
+        return;
+
+    }
+});
+
+// Verify the code and change the user's email
+router.put('/change-email/:username', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let queries
+        let resultQuery;
+        let databaseResult;
+        let { new_email, one_time_code } = req.body;
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        Logger.log('Initializing /api/user/change-email.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if new_email key is not in the body request
+        if (!new_email || !one_time_code) {
+            Logger.error('Error: New email or one time code are missing in the body request');
+            res.status(400).json({ message: "You must provide your new email and the one time code before we can update your email." });
+            return;
+        }
+
+        // Retrieve user's id and Compare the one time code from the database to the one time code provided by the user
+        // Retrieve the current inuse code from the database associated with the user's email
+        selectQuery = `SELECT u.user_id, code_description AS code, code_start_date, code_expiration_date FROM user u JOIN one_time_code ot ON u.user_id = ot.user_id WHERE user_username = ? AND code_status = ? AND code_description = ? AND NOW() < code_expiration_date;`;
+        Logger.log('Starting query...');
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter, 'inuse', one_time_code]);
+
+        // Throw an error if there are no results
+        if (!resultQuery || resultQuery.length === 0) {
+            Logger.error('Error: The code provided by the user either does not exist or have already expired');
+            res.status(404).json({ message: 'The code you provided does not exist or have already expired. Resend a new one and try again.'});
+            return;
+        }
+
+        databaseResult = resultQuery[0];
+        Logger.log('Code information: ');
+        Logger.log(databaseResult);
+
+        // Throw an error if the user code does not match the database code
+        if (one_time_code !== databaseResult.code) {
+            Logger.error(`Error: Code provided by the user does not match the code from the database under the user's email (${one_time_code} =/= ${userCodeInstance.code}).`);
+            res.status(400).json({ message: 'The code you provided is incorrect, try again or resend a new code to your new email.'});
+            return;
+        }
+
+        // Deletes all current one time code for the user while updating the user's email
+        queries = [
+            {
+                query: "DELETE FROM one_time_code WHERE user_id = ?;",
+                params: [databaseResult.user_id]
+            },
+            {
+                query: 'UPDATE user SET user_email = ? WHERE user_username = ?;',
+                params: [new_email, usernameFromParameter]
+            }
+        ]
+        Logger.log('Executing transaction...');
+        resultQuery = await executeTransaction(queries);
+        for (let query_instace of queries) {
+            Logger.log(query_instace.query);
+        }
+        Logger.log('Transaction result: ');
+        Logger.log(resultQuery);
+        Logger.log(`Successfully deleted codes for user #${databaseResult.user_id} while updating their email.`);
+
+        res.status(200).json({ message: 'Change email success!' });
+        return;
+        
+    } catch (err) {
+        Logger.error(`Error: A server error occured while trying to change the user's email in /api/user/change-email route.`);
+        Logger.error(err);
+
+        if (err instanceof Error) {
+            // Constraint error messages directly from the database
+
+            // Throw an error when there is no @ and . in the respected location of their email string
+            if (err.sqlMessage.includes('user_email_check')) {
+                Logger.error('Error: User provided an invalid email format');
+                res.status(400).json({ message: 'Invalid email format' });
+                return;
+            }
+
+            // Throw an error for a duplicated email entry
+            if (err.code.includes('ER_DUP_ENTRY') && err.sqlMessage.includes('user_email')) {
+                Logger.error('Error: User provided an email that already exists in the database');
+                res.status(409).json({ message: 'Email is already taken' });
+                return;
+            }
+        }
+
+        res.status(500).json({ message: 'A server error occured while attempting to change your email. Contact the developer for fix or try again later' });
+        return;
+    }
+});
+
+// Retrieve the user's email
+router.get('/email/:username', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let resultQuery;
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        Logger.log('Initializing /api/user/change-email.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Retrieve the user's current email
+        selectQuery = "SELECT user_email FROM user WHERE user_username = ?;";
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error('Error: User does not exist');
+            res.status(400).json({ message: "Unable to find your current email because your username is nonexistent" });
+            return;
+        }
+        Logger.log(`Successfully retrieved the user's current email`);
+        Logger.log(resultQuery[0].user_email);
+
+        res.status(200).json({ message: `Succesfully retrieved your email.`, current_email: resultQuery[0].user_email });
+        return;
+
+    } catch (err) {
+        Logger.error(`An error occured while retrieving the user's current email.`);
+        Logger.error(err);
+        res.status(500).json({ message: `Unable to retrieve your current email. Try again later.`});
+        return;
     }
 });
 
