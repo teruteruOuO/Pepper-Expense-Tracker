@@ -691,4 +691,88 @@ router.get('/email/:username', authorizeToken, async (req, res) => {
     }
 });
 
+// Retrieve the user's notification status
+router.get('/notification/:username', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let resultQuery;
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        Logger.log('Initializing /api/notification GET route.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Retrieve the user's notification status
+        selectQuery = "SELECT user_notification AS notification FROM user WHERE user_username = ?;";
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error('Error: User does not exist');
+            res.status(400).json({ message: "Unable to find your notification status because your username does not exist." });
+            return;
+        }
+        Logger.log(`Successfully retrieved the user's notification status`);
+        Logger.log(resultQuery[0].notification);
+
+        res.status(200).json({ message: `Succesfully retrieved your notification status.`, notification: resultQuery[0].notification });
+        return;
+
+    } catch (err) {
+        Logger.error(`An error occured while retrieving the user's notification status.`);
+        Logger.error(err);
+        res.status(500).json({ message: `Unable to retrieve your notification status. Try again later.`});
+        return;
+    }
+});
+
+// Change the user's notification status
+router.put('/notification/:username', authorizeToken, async (req , res) => {
+    try {
+        let updateQuery;
+        let resultQuery;
+        let { notification } = req.body;
+        let notificationStatus;
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        Logger.log('Initializing /api/notification PUT route.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if notification is not in the request body
+        if (notification === undefined) {
+            Logger.error(`Error: User does not have a notification key in its request body.`);
+            res.status(400).json({ message: 'You must send a notification key before you can continue.'});
+            return;
+        }
+
+        // Update the user's notification status
+        updateQuery = "UPDATE user SET user_notification = ? WHERE user_username = ?;";
+        resultQuery = await executeWriteQuery(updateQuery, [notification, usernameFromParameter]);
+
+        Logger.log(`Successfully changed the user's notification status to ${notification}`);
+        res.status(200).json({ message: "Successfully updated your notification status.", notification });
+        return;
+
+
+    } catch (err) {
+        Logger.error(`An error occured while changing the user's notification status.`);
+        Logger.error(err);
+        res.status(500).json({ message: `Unable to change your notification status. Try again later.`});
+        return;
+    }
+});
+
 export default router;
