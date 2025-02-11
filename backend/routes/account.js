@@ -708,7 +708,7 @@ router.post('/login', async (req, res) => {
 
         // Find username and password from the database that matches the given user credentials
         username = username.replace(/\s+/g, ' ').trim().toLowerCase();
-        selectQuery = "SELECT user_first_name AS first_name, user_username AS username, user_password AS password, user_active AS active, c.currency_code AS currency_code, currency_sign FROM user u JOIN currency c ON u.currency_code = c.currency_code WHERE user_username = ?;";
+        selectQuery = "SELECT user_first_name AS first_name, user_username AS username, user_password AS password, c.currency_code AS currency_code, currency_sign FROM user u JOIN currency c ON u.currency_code = c.currency_code WHERE user_username = ?;";
         resultQuery = await executeReadQuery(selectQuery, [username]);
         if (resultQuery.length !== 1) {
             Logger.error(`Error: Cannot find an instance of a user with the username ${username}, meaning the provided credentials is most likely wrong`);
@@ -716,13 +716,6 @@ router.post('/login', async (req, res) => {
             return;
         }
         databaseCredentials = resultQuery[0];
-
-        // If the user instance is not active, then refuse to login and inform the user
-        if (databaseCredentials.active !== 1) {
-            Logger.error(`Error: User ${username} is disabled, so logging them in is not possible unless user_active is reverted back to 1`);
-            res.status(400).json({ message: 'This account is disabled. Contact the administrator to enable the account back on' });
-            return;
-        }
 
         // Validate the body password from the database password
         isPasswordValid = await bcrypt.compare(password, databaseCredentials.password);

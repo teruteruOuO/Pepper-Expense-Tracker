@@ -52,7 +52,7 @@
                     <option value="loading">Loading...</option>
                 </select>
                 <select name="currency_code" id="currency_code" required v-model="selectedCurrency" v-else>
-                    <option v-for="currency in currencyOptions" :key="currency.code" :value="currency.code">{{ currency.currency_name }}</option>
+                    <option v-for="currency in currencyOptions" :key="currency.code" :value="currency.code">{{ currency.name }}</option>
                 </select>
             </li>
             <li>

@@ -6,6 +6,7 @@
     <UsernameChangeComponent />
     <EmailChangeComponent />
     <NotificationComponent />
+    <DeleteAccountComponent />
     <LogoutComponent />
 </main>
 </template>
@@ -17,6 +18,7 @@ import PasswordChangeComponent from '@/components/one-time/account/PasswordChang
 import UsernameChangeComponent from '@/components/one-time/account/UsernameChangeComponent.vue';
 import EmailChangeComponent from '@/components/one-time/account/EmailChangeComponent.vue';
 import NotificationComponent from '@/components/one-time/account/NotificationComponent.vue';
+import DeleteAccountComponent from '@/components/one-time/account/DeleteAccountComponent.vue';
 import LogoutComponent from '@/components/one-time/account/LogoutComponent.vue';
 </script>
 

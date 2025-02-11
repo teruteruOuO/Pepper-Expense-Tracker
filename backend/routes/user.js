@@ -596,7 +596,7 @@ router.put('/change-email/:username', authorizeToken, async (req, res) => {
 
         // Throw an error if the user code does not match the database code
         if (one_time_code !== databaseResult.code) {
-            Logger.error(`Error: Code provided by the user does not match the code from the database under the user's email (${one_time_code} =/= ${userCodeInstance.code}).`);
+            Logger.error(`Error: Code provided by the user does not match the code from the database under the user's email (${one_time_code} =/= ${databaseResult.code}).`);
             res.status(400).json({ message: 'The code you provided is incorrect, try again or resend a new code to your new email.'});
             return;
         }
@@ -737,7 +737,6 @@ router.put('/notification/:username', authorizeToken, async (req , res) => {
         let updateQuery;
         let resultQuery;
         let { notification } = req.body;
-        let notificationStatus;
         const tokenInformation = req.user;
         const usernameFromParameter = req.params.username;
         Logger.log('Initializing /api/notification PUT route.');
@@ -771,6 +770,202 @@ router.put('/notification/:username', authorizeToken, async (req , res) => {
         Logger.error(`An error occured while changing the user's notification status.`);
         Logger.error(err);
         res.status(500).json({ message: `Unable to change your notification status. Try again later.`});
+        return;
+    }
+});
+
+// Send a one time code for the user during an account deletion process
+router.post('/delete-account/send-code/:username', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let resultQuery;
+        let queries;
+        const oneTimeCode = generateCode(6);
+        let passwordMatch;
+        let databaseResult;
+        let { current_password } = req.body;
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        const myEmail = {
+            service: "gmail",
+            auth: {
+                user: process.env.NODEMAILER_EMAIL,
+                pass: process.env.NODEMAILER_PASSWORD
+            },
+            pool: true, // Use connection pooling
+            maxConnections: 1,
+            maxMessages: 5,
+            rateLimit: 5,
+            tls: { rejectUnauthorized: false } // Bypass certificate issues
+        };
+        let mailOptions = {
+            from: `"Ube's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
+            to: "",
+            subject: "Verification Code for Account Deletion.",
+            text: `Your code is: ${oneTimeCode}. Remember that this code will expire in 10 minutes.`
+
+        }
+        let transporter = nodemailer.createTransport(myEmail);
+        Logger.log('Initializing /api/user/delete-account/send-code.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if current_password key is not in the body request
+        if (!current_password) {
+            Logger.error('Error: Current password is missing in the body request');
+            res.status(400).json({ message: "You must provide your current password before we can send you a one time code." });
+            return;
+        }
+
+        // Request the Database server for the user's id, current hashed password, and email.
+        selectQuery = "SELECT user_id AS id, user_password AS password, user_email AS email FROM user WHERE user_username = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: account details for user ${usernameFromParameter} do not exist.`);
+            res.status(404).json({ message: 'Your account details are unfortunately not recorded.'});
+            return;
+        }
+        databaseResult = resultQuery[0];
+        Logger.log(`Successfully retrieved the user's account details.`);
+        Logger.log(databaseResult);
+
+        // Compare the current password provided by the user and the password stored in the database
+        passwordMatch = await bcrypt.compare(current_password, databaseResult.password);
+        if (!passwordMatch) {
+            Logger.error(`Error: The current password provided by the user does not match the password from the database.`);
+            res.status(400).json({ message: 'The current password you provided is incorrect. Try again.' });
+            return;
+        }
+        Logger.log('Provided current password and database password successfully match.');
+
+        // Deletes all current one time code for the user while making a new one as well
+        queries = [
+            {
+                query: "DELETE FROM one_time_code WHERE user_id = ?;",
+                params: [databaseResult.id]
+            },
+            {
+                query: 'INSERT INTO one_time_code (user_id, code_description, code_status) VALUES (?, ?, ?);',
+                params: [databaseResult.id, oneTimeCode, 'inuse']
+            }
+        ]
+        Logger.log('Executing transaction...');
+        resultQuery = await executeTransaction(queries);
+        for (let query_instace of queries) {
+            Logger.log(query_instace.query);
+        }
+        Logger.log('Transaction result: ');
+        Logger.log(resultQuery);
+        Logger.log(`Successfully deleted codes for user #${databaseResult.id} while making a new one`);
+
+        // Send the one time code to the user's email.
+        mailOptions.to = databaseResult.email;
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                Logger.error('Error: An error occured while sending the code to the user');
+                Logger.error(error);
+                res.status(500).json({ message: 'A server error occured while sending the one time code to your email. Please try again' });
+                return;
+
+            } else {
+                Logger.log('Successfully sent the code to the new email');
+                res.status(200).json({ message: `Successfully sent the code to ${databaseResult.email}, check your email for the code (You might have to check in your spam folder if possible)` });
+                return;
+            }
+        });
+
+
+    } catch (err) {
+        Logger.error(`Error: A server error occured while sending a code to the user's email during the account deletion process.`);
+        Logger.error(err);
+        res.status(500).json({ message: 'A server error occured while sending a code to your email.'});
+        return;
+
+    }
+});
+
+// Delete the user's account
+router.delete('/delete-account/:username', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let resultQuery;
+        let deleteQuery;
+        let databaseResult;
+        let { one_time_code } = req.body;
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        Logger.log('Initalizing /api/user/delete-account');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if one_time_code key is not in the body request
+        if (!one_time_code) {
+            Logger.error('Error: one time code is missing in the body request');
+            res.status(400).json({ message: "You must provide the one time code before we can delete your account." });
+            return;
+        }
+
+        // Retrieve user's id and Compare the one time code from the database to the one time code provided by the user
+        // Retrieve the current inuse code from the database associated with the user's email
+        selectQuery = `SELECT u.user_id, code_description AS code, code_start_date, code_expiration_date FROM user u JOIN one_time_code ot ON u.user_id = ot.user_id WHERE user_username = ? AND code_status = ? AND code_description = ? AND NOW() < code_expiration_date;`;
+        Logger.log('Starting query...');
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter, 'inuse', one_time_code]);
+
+        // Throw an error if there are no results
+        if (!resultQuery || resultQuery.length === 0) {
+            Logger.error('Error: The code provided by the user either does not exist or have already expired');
+            res.status(404).json({ message: 'The code you provided does not exist or have already expired. Resend a new one or try again.'});
+            return;
+        }
+
+        databaseResult = resultQuery[0];
+        Logger.log('Code information: ');
+        Logger.log(databaseResult);
+
+        // Throw an error if the user code does not match the database code
+        if (one_time_code !== databaseResult.code) {
+            Logger.error(`Error: Code provided by the user does not match the code from the database under the user's email (${one_time_code} =/= ${databaseResult.code}).`);
+            res.status(400).json({ message: 'The code you provided is incorrect, try again or resend a new code to your new email.'});
+            return;
+        }
+
+        // Request the database server to delete the user's account.
+        deleteQuery = "DELETE FROM user WHERE user_id = ?;";
+        Logger.log(deleteQuery);
+        resultQuery = await executeWriteQuery(deleteQuery, [databaseResult.user_id]);
+        Logger.log(`Successfully deleted user #${databaseResult.user_id}'s account.`);
+        Logger.log(deleteQuery);
+        
+        // Clear the user's token to log them out
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+        });
+        
+        res.status(200).json({ message: `Successfully deleted ${usernameFromParameter}'s account.` });
+        return;
+        
+    } catch (err) {
+        Logger.error(`Error: A server error occured while attempting to delete the user's account.`);
+        Logger.error(err);
+        res.status(500).json({ message: 'A server error occured while trying to delete your account.'});
         return;
     }
 });
