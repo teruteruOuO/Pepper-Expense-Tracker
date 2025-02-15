@@ -21,6 +21,13 @@ body > * {
 table {
     table-layout: fixed;
     border-collapse: collapse;
+    text-align: center;
+}
+
+table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    
 }
 
 li {

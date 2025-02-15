@@ -9,6 +9,7 @@ import user from './routes/user.js';
 import page from './routes/page.js';
 import account from './routes/account.js';
 import currency from './routes/currency.js';
+import savings from './routes/savings.js';
 
 // Allow hidden backend variables (from .env) to be used in the application
 dotenv.config();
@@ -33,6 +34,7 @@ app.use('/api/user', user);
 app.use('/api/page', page);
 app.use('/api/account', account);
 app.use('/api/currency', currency);
+app.use('/api/savings', savings);
 
 // Start backend server operation
 app.listen(process.env.APP_PORT, () => {
