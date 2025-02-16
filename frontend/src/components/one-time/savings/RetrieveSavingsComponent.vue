@@ -1,6 +1,10 @@
 <template>
 <section class="retrieve-savings-component">
     <h2>Retrieve Savings Component</h2>
+    <section class="add-savings-link">
+        <RouterLink :to="{ name: 'add-savings' }">Add Savings</RouterLink>
+    </section>
+
     <section class="is-loading" v-if="!userSavings && isLoading">
         <p>Retrieving your savings...</p>
     </section>
@@ -37,7 +41,7 @@
                     <td>{{ saving.description }}</td>
                     <td>{{ currencySign }}{{ saving.current_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
                     <td>{{ currencySign }}{{ saving.target_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-                    <td><progress :id="`saving-progress-${saving.sequence}`" max="100" :value="saving.progress">{{ saving.progress }}</progress></td>
+                    <td><progress :id="`saving-progress-${saving.sequence}`" max="100" :value="saving.progress">{{ saving.progress }}</progress> {{ saving.progress.toFixed(2) }}%</td>
                     <td>{{ saving.deadline }}</td>
                 </tr>
             </tbody>
@@ -53,6 +57,7 @@
 import axios from 'axios';
 import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/user';
+import { RouterLink } from 'vue-router';
 
 // Initialize variables
 const user = useUserStore();
@@ -99,7 +104,7 @@ const computedSavings = computed(() => {
 
         return (
             saving.name.toLowerCase().includes(searchTerm) || 
-            saving.description.toLowerCase().includes(searchTerm) ||
+            (saving.description?.toLowerCase() || '').includes(searchTerm) || // Handle optional description
             saving.current_amount.toString().includes(searchTerm) ||
             saving.target_amount.toString().includes(searchTerm) ||
             formattedDeadline.includes(searchTerm) // Search in formatted deadline
@@ -119,7 +124,7 @@ onMounted(async () => {
 <style scoped>
 table, th, tr, td {
     border: 1px solid black;
-    text-align: center;
+    text-align: left;
 }
 
 tbody tr:hover {
