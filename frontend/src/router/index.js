@@ -45,6 +45,12 @@ const router = createRouter({
             component: () => import('../views/SavingsView.vue')
         },
         {
+            path: '/savings/add',
+            name: 'add-savings',
+            meta: { requiresAuth: true },
+            component: () => import('../views/AddSavingsView.vue')
+        },
+        {
             path: '/budget',
             name: 'budget',
             meta: { requiresAuth: true },
