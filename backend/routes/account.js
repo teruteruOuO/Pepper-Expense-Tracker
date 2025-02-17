@@ -692,11 +692,13 @@ router.post('/login', async (req, res) => {
 
 
         /* This section validates incoming data provided by the user */
-        // If user is logged in while logging in, then throw an error
+        // If user is logged in while logging in, then clear the any tokens
         if (isLoggedIn) {
-            Logger.error('Error: A user is attempting to login while already logged in with a valid token');
-            res.status(403).json({ message: 'You must log out before logging in' });
-            return;
+            res.clearCookie('token', {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'strict',
+            });
         }
 
         // Throw an error if username and password are not in the request body

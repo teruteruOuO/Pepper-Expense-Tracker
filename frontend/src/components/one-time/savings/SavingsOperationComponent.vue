@@ -49,7 +49,7 @@
 import axios from 'axios';
 import { ref, reactive, onMounted } from 'vue';
 import { useUserStore } from '@/stores/user';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 // Initialize variables
 const isLoadingPage = ref(false);
@@ -60,6 +60,7 @@ const feedBackFromBackend = reactive({
 })
 const user = useUserStore();
 const route = useRoute();
+const router = useRouter();
 const inputValue = ref(Number());
 const currencySettings = reactive({
     name: '',
@@ -75,7 +76,7 @@ const savingsInformation = reactive({
 // Retrieve the user saving instance's current and target amount
 const retrieveProgressAmounts = async () => {
     try {
-        const response = await axios.get(`/api/savings/${user.userInformation.username}/instance/${route.params.sequence}`);
+        const response = await axios.get(`/api/savings/${user.userInformation.username}/current-amount/${route.params.sequence}`);
         console.log(response.data.message);
 
         // Store the currency option
@@ -92,7 +93,13 @@ const retrieveProgressAmounts = async () => {
         console.error('An error occured while retrieving the user instance amounts.');
         console.error(err);
         feedBackFromBackend.message = err.response.data.message;
-        
+        feedBackFromBackend.success = false;
+
+        // If there's no resource (the savings doesn't exist for the user) then reroute them back to the savings page
+        if (err.response && err.response.status === 404) {
+            alert(feedBackFromBackend.message);
+            router.push({ name: 'savings' });
+        }
     }
 }
 
@@ -144,7 +151,7 @@ const operateCurrentAmount = async (operation) => {
         const response = await axios.post(`/api/savings/update-current-amount/${user.userInformation.username}/${savingsInformation.sequence}`, body);
         console.log(response.data.message);
 
-        // reload the updatew savings page
+        // reload the update savings page
         alert(response.data.message);
         window.location.reload();
 
@@ -204,6 +211,10 @@ button:active {
 ul {
     display: flex;
     flex-wrap: wrap;
+}
+
+li:last-of-type {
+    color: blue;
 }
 
 </style>
