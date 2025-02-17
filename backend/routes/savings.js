@@ -2,7 +2,7 @@ import express from 'express';
 import { executeWriteQuery, executeReadQuery, executeTransaction } from '../utilities/pool.js';
 import Logger from '../utilities/logger.js';
 import authorizeToken from '../utilities/authorize-token.js';
-import formateDate from '../utilities/format-date.js';
+import formatDate from '../utilities/format-date.js';
 
 const router = express.Router();
 
@@ -148,7 +148,7 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
         // Neutralize the inputs: remove excessive whitespace and convert the numbers into dollar
         name = name.trim().replace(/\s+/g, ' ');
         description = typeof description === 'string' ? description.replace(/\s+/g, ' ').trim() : null;
-        deadline = formateDate(deadline);
+        deadline = formatDate(deadline);
         current = Number(current) / Number(dollar_to_currency);
         target = Number(target) / Number(dollar_to_currency);
 
@@ -192,7 +192,7 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
 });
 
 // Retrieve a user's savings current and target amounts
-router.get(`/:username/instance/:sequence`, authorizeToken, async (req, res) => {
+router.get(`/:username/current-amount/:sequence`, authorizeToken, async (req, res) => {
     try {
         let selectQuery;
         let resultQuery;
@@ -210,7 +210,7 @@ router.get(`/:username/instance/:sequence`, authorizeToken, async (req, res) => 
         const savingsSequence = req.params.sequence;
         const usernameFromParameter = req.params.username;
         const tokenInformation = req.user;
-        Logger.log('Initalizing /:username/:currency_code/:sequence GET ROUTE.');
+        Logger.log('Initalizing /api/savings/:username/:currency_code/:sequence GET ROUTE.');
 
         // If the accessing user does not match the user accessing the route with the same username, then throw an error
         Logger.log(`Token Username: ${tokenInformation.username}`);
@@ -235,7 +235,7 @@ router.get(`/:username/instance/:sequence`, authorizeToken, async (req, res) => 
         resultQuery = await executeReadQuery(selectQuery, [savingsSequence, usernameFromParameter]);
         if (resultQuery.length !== 1) {
             Logger.error(`Error: Unable to find current and target amount information for ${savingsSequence} by ${usernameFromParameter}`);
-            res.status(400).json({ message: "Unable to retrieve the savings instance for you as it may not exist. Only click or refer to the ones that exist in the Savings Page." });
+            res.status(404).json({ message: "Unable to retrieve the savings instance for you as it may not exist. Only click or refer to the ones that exist in the Savings Page." });
             return;
         }
         Logger.log(resultQuery);
@@ -243,16 +243,16 @@ router.get(`/:username/instance/:sequence`, authorizeToken, async (req, res) => 
         currency.sign = resultQuery[0].currency_sign;
         currency.name = resultQuery[0].currency_name;
         savingsAmount.target = Number((Number(resultQuery[0].savings_target_amount) * currency.dollar_to_currency).toFixed(2));
-        savingsAmount.current = Number((Number(resultQuery[0].savings_current_amount) * currency.dollar_to_currency).toFixed(2));;
+        savingsAmount.current = Number((Number(resultQuery[0].savings_current_amount) * currency.dollar_to_currency).toFixed(2));
         savingsAmount.sequence = Number(resultQuery[0].savings_sequence);
         savingsAmount.progress = (Number(resultQuery[0].savings_current_amount) / Number(resultQuery[0].savings_target_amount)) * 100;
         Logger.log('Processed inputs:');
         Logger.log(currency);
         Logger.log(savingsAmount);
 
-        Logger.log(`Successfully retrieved ${usernameFromParameter}'s saving instance #${savingsAmount.sequence}`);
+        Logger.log(`Successfully retrieved ${usernameFromParameter}'s saving instance #${savingsAmount.sequence} (current and target amounts)`);
         res.status(200).json({
-            message: `Successfully retrieve your savings instance information.`,
+            message: `Successfully retrieve your savings instance information for current and target amounts.`,
             savings_amount: {
                 current: savingsAmount.current,
                 target: savingsAmount.target,
@@ -290,7 +290,7 @@ router.post('/update-current-amount/:username/:sequence', authorizeToken, async 
             id: Number(),
             dollar_to_currency: Number()
         }
-        Logger.log('Initalizing /update-current-amount/:username/:sequence POST ROUTE.');
+        Logger.log('Initalizing /api/savings/update-current-amount/:username/:sequence POST ROUTE.');
 
         // If the accessing user does not match the user accessing the route with the same username, then throw an error
         Logger.log(`Token Username: ${tokenInformation.username}`);
@@ -363,6 +363,274 @@ router.post('/update-current-amount/:username/:sequence', authorizeToken, async 
         }
 
         res.status(500).json({ message: `A server error occured while trying to add/deduct from your current savings. Please try again later...`});
+        return;
+
+    }
+});
+
+// Retrieve all the savings information for a particular savings instance from the user
+router.get('/:username/instance/:sequence', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let resultQuery;
+        let savingsInformation = {
+            sequence: Number(),
+            information: {
+                name: '',
+                description: '',
+                deadline: new Date()
+            },
+            amount: {
+                current: Number(),
+                target: Number()
+            }
+        }
+        let currency = {
+            dollar_to_currency: Number(),
+            sign: "",
+            name: ""
+        };
+        const savingsSequence = req.params.sequence;
+        const usernameFromParameter = req.params.username;
+        const tokenInformation = req.user;
+        Logger.log('Initalizing /api/savings/:username/instance/:sequence GET ROUTE.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if there's no savings sequence in the request parameter
+        Logger.log(`User's savings sequence: ${savingsSequence}`);
+        if (!savingsSequence) {
+            Logger.error('Error: User must provide a savings instance');
+            res.status(400).json({ message: "You must provide a savings instance." });
+            return;
+        }
+
+        // Retrieve user's currency setting and the savings instance's information (current and target amounts are converted to the user's preferred currency)
+        selectQuery = "SELECT s.*, dollar_to_currency, currency_name, currency_sign FROM user u JOIN savings s ON s.user_id = u.user_id JOIN currency c ON c.currency_code = u.currency_code WHERE savings_sequence = ? AND user_username = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [savingsSequence, usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: Unable to find current and target amount information for ${savingsSequence} by ${usernameFromParameter}`);
+            res.status(404).json({ message: "Unable to retrieve the savings instance for you as it may not exist. Only click or refer to the ones that exist in the Savings Page." });
+            return;
+        }
+        Logger.log(resultQuery);
+        currency.dollar_to_currency = Number(resultQuery[0].dollar_to_currency);
+        currency.sign = resultQuery[0].currency_sign;
+        currency.name = resultQuery[0].currency_name;
+        savingsInformation.sequence = Number(resultQuery[0].savings_sequence);
+        savingsInformation.information.deadline = formatDate(resultQuery[0].savings_deadline_date);
+        savingsInformation.information.description = resultQuery[0].savings_description;
+        savingsInformation.information.name = resultQuery[0].savings_name;
+        savingsInformation.amount.current = Number((Number(resultQuery[0].savings_current_amount) * currency.dollar_to_currency).toFixed(2));
+        savingsInformation.amount.target = Number((Number(resultQuery[0].savings_target_amount) * currency.dollar_to_currency).toFixed(2));
+        Logger.log('Processed inputs:');
+        Logger.log(currency);
+        Logger.log(savingsInformation);
+
+        Logger.log(`Successfully retrieved ${usernameFromParameter}'s saving instance #${savingsInformation.sequence}`);
+        res.status(200).json({
+            message: `Successfully retrieved your savings instance information.`,
+            savings: {
+                sequence: savingsInformation.sequence,
+                information: {
+                    name: savingsInformation.information.name,
+                    description: savingsInformation.information.description,
+                    deadline: savingsInformation.information.deadline
+                },
+                amount: {
+                    current: savingsInformation.amount.current,
+                    target: savingsInformation.amount.target
+                }
+            },
+            currency: {
+                name: currency.name,
+                sign: currency.sign
+            }
+        });
+        return;
+
+    } catch (err) {
+        Logger.error(`Error: A server error occured while retrieving the savings instance's information for the user.`);
+        Logger.error(err);
+        res.status(500).json({ message: `A server error occured while retrieiving the saving instance's information. Please try again later...` });
+        return;
+    }
+});
+
+// Update the savings instance's information of the user.
+router.post('/update/:username/:sequence', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let updateQuery;
+        let resultQuery;
+        const savingsSequence = req.params.sequence;
+        const usernameFromParameter = req.params.username;
+        const tokenInformation = req.user;
+        let { 
+            information: { name, description, deadline },
+            amount: { current, target } } = req.body;
+        const databaseResult = {
+            id: Number(),
+            dollar_to_currency: Number()
+        }
+        Logger.log('Initalizing /api/savings/update/:username/:sequence POST ROUTE.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if there's no savings sequence in the request parameter
+        Logger.log(`User's savings sequence: ${savingsSequence}`);
+        if (!savingsSequence) {
+            Logger.error('Error: User must provide a savings instance');
+            res.status(400).json({ message: "You must provide a savings instance." });
+            return;
+        }
+
+        // Throw an error if name, deadline, current and target have no values in the request body
+        if (current == undefined || target == undefined || !name || !deadline) {
+            Logger.error('Error: User is missing current, target, name, and deadline keys in the request body.');
+            res.status(403).json({ message: "You must provide the values for current and target amounts, name, and deadline inputs." });
+            return;
+        }
+
+        // Retrieve the user's id and currency settings.
+        selectQuery = "SELECT user_id, dollar_to_currency FROM user u JOIN currency c ON u.currency_code = c.currency_code WHERE user_username = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: User ${usernameFromParameter} was deleted or stopped existing while the process of updating their savings #${savingsSequence} is ongoing.`);
+            res.status(400).json({ message: `Invalid user` });
+            return;
+        } 
+        databaseResult.dollar_to_currency = Number(resultQuery[0].dollar_to_currency);
+        databaseResult.id = Number(resultQuery[0].user_id);
+
+        // Convert the current and target amounts to USD.
+        current = current / databaseResult.dollar_to_currency;
+        target = target / databaseResult.dollar_to_currency;
+
+        // Neutralize savings name, description, and deadline
+        name = name.trim().replace(/\s+/g, ' ');
+        description = typeof description === 'string' ? description.replace(/\s+/g, ' ').trim() : null;
+        deadline = formatDate(deadline);
+
+        // Update savings instance
+        updateQuery = "UPDATE savings SET savings_name = ?, savings_description = ?, savings_target_amount = ?, savings_current_amount = ?, savings_deadline_date = ? WHERE user_id = ? AND savings_sequence = ?;";
+        Logger.log(updateQuery);
+        resultQuery = await executeWriteQuery(updateQuery, [
+            name,
+            description,
+            target,
+            current,
+            deadline,
+            databaseResult.id,
+            savingsSequence
+        ]);
+        Logger.log(updateQuery);
+
+        Logger.log(`Successfully updated savings instance ${name} for ${usernameFromParameter}!`);
+        res.status(200).json({ message: `Successfully updated savings instance ${name}!` });
+        return;
+
+
+    } catch (err) {
+        Logger.error(`Error: A server error occured while updating a savings instance to the user's account.`);
+        Logger.error(err);
+
+        if (err instanceof Error) {
+            // Constraint error messages directly from the database
+
+            // Throw an error when target amount <= 0
+            if (err.sqlMessage.includes('chk_target_amount')) {
+                Logger.error(`Error: The user provided a target amount with a value of 0`);
+                res.status(400).json({ message: 'Your target amount MUST not be less than or equal to 0.' });
+                return;
+            }
+
+            // Throw an error when current amount < 0
+            if (err.sqlMessage.includes('chk_current_amount')) {
+                Logger.error(`Error: The user provided a current amount with a value of less than 0`);
+                res.status(400).json({ message: 'Your current amount MUST not be less than 0.' });
+                return;
+            }
+
+        }
+
+        res.status(500).json({ message: `A server error occured while updating a savings information to your account. Please try again later.`});
+        return;
+    }
+});
+
+// Delete the savings instance for the user
+router.delete('/:username/:sequence', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let resultQuery;
+        let deleteQuery;
+        let userId = Number();
+        const savingsSequence = req.params.sequence;
+        const usernameFromParameter = req.params.username;
+        const tokenInformation = req.user;
+        Logger.log('Initializing /api/savings/:username/:sequence DELETE route');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if there's no savings sequence in the request parameter
+        Logger.log(`User's savings sequence: ${savingsSequence}`);
+        if (!savingsSequence) {
+            Logger.error('Error: User must provide a savings instance');
+            res.status(400).json({ message: "You must provide a savings instance." });
+            return;
+        }
+
+        // Retrieve the user's id
+        selectQuery = "SELECT user_id FROM user WHERE user_username = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: User ${usernameFromParameter} was deleted or stopped existing while the process of deleting a savings instance is ongoing`);
+            res.status(400).json({ message: `Invalid user` });
+            return;
+        }
+        Logger.log(resultQuery);
+        userId = Number(resultQuery[0].user_id);
+
+        // Delete the savings instance
+        deleteQuery = "DELETE FROM savings WHERE user_id = ? AND savings_sequence = ?;";
+        Logger.log(deleteQuery);
+        resultQuery = await executeWriteQuery(deleteQuery, [userId, savingsSequence]);
+        Logger.log(resultQuery);
+
+        Logger.log(`Successfully deleted savings instance #${savingsSequence} for ${usernameFromParameter}`);
+        res.status(200).json({ message: `Successfully deleted this particular savings for you.`});
+        return;
+        
+
+    } catch (err) {
+        Logger.error(`Error: A server error occured while attempting to delete the savings instance for the user.`);
+        Logger.error(err);
+        res.status(500).json({ message: `A server error occured while trying to delete this savings for you. Please try again later...`});
         return;
 
     }
