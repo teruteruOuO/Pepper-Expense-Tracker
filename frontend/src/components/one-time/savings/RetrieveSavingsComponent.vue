@@ -36,7 +36,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="saving in computedSavings" :key="saving.sequence">
+                <tr v-for="saving in computedSavings" :key="saving.sequence" @click="enterSaving(saving.sequence)">
                     <td>{{ saving.name }}</td>
                     <td>{{ saving.description }}</td>
                     <td>{{ currencySign }}{{ saving.current_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
@@ -58,9 +58,11 @@ import axios from 'axios';
 import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { RouterLink } from 'vue-router';
+import { useRouter } from 'vue-router';
 
 // Initialize variables
 const user = useUserStore();
+const router = useRouter();
 const isLoading = ref(false);
 const userSavings = ref([]);
 const feedbackFromBackend = ref("");
@@ -111,6 +113,11 @@ const computedSavings = computed(() => {
         );
     });
 });
+
+// Route to update page for each savings
+const enterSaving = (sequence) => {
+    router.push({ name: 'update-savings', params: { sequence } });
+}
 
 // Automatically trigger retrieve savings
 onMounted(async () => {
