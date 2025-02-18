@@ -138,12 +138,19 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
         selectQuery = "SELECT savings_sequence AS current_savings_num FROM savings WHERE user_id = ? ORDER BY savings_sequence DESC LIMIT 1;";
         Logger.log(selectQuery);
         resultQuery = await executeReadQuery(selectQuery, [userID]);
-        if (resultQuery.length !== 1) {
+        console.log(resultQuery);
+        if (resultQuery.length > 1) {
             Logger.error(`Error: User ${userID} was deleted or stopped existing while the process of adding savings instance is ongoing`);
             res.status(400).json({ message: `Invalid user` });
             return;
         }
-        savingsCurrentCount = Number(resultQuery[0].current_savings_num) + 1;
+        // If there is no result, that means there are no savings record yet; so begin with 1
+        if (resultQuery.length === 0) {
+            savingsCurrentCount = 1;
+        } else {
+            savingsCurrentCount = Number(resultQuery[0].current_savings_num) + 1;
+        }
+        
 
         // Neutralize the inputs: remove excessive whitespace and convert the numbers into dollar
         name = name.trim().replace(/\s+/g, ' ');
