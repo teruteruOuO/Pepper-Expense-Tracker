@@ -2,7 +2,7 @@ import express from 'express';
 import { executeWriteQuery, executeReadQuery, executeTransaction } from '../utilities/pool.js';
 import Logger from '../utilities/logger.js';
 import authorizeToken from '../utilities/authorize-token.js';
-import formatDate from '../utilities/format-date.js';
+import { formatDate } from '../utilities/format-date.js';
 
 const router = express.Router();
 

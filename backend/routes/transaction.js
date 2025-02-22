@@ -2,7 +2,7 @@ import express from 'express';
 import { executeWriteQuery, executeReadQuery, executeTransaction } from '../utilities/pool.js';
 import Logger from '../utilities/logger.js';
 import authorizeToken from '../utilities/authorize-token.js';
-import formatDate from '../utilities/format-date.js';
+import { convertFromInputDateTimeToMySQLTimestamp } from '../utilities/format-date.js';
 
 const router = express.Router();
 
@@ -87,6 +87,111 @@ router.get(`/:username/:currency_code`, authorizeToken, async (req, res) => {
         Logger.error(err);
         res.status(500).json({ message: `A server error occured while retrieving all of your transactions. Please try again later.`});
         return;
+    }
+});
+
+// Add a transaction instance to the user's account
+router.post(`/:username`, authorizeToken, async (req, res) => {
+    try {
+        let userID = Number();
+        let transactionCurrentCount = Number();
+        let selectQuery;
+        let resultQuery;
+        let insertQuery;
+        let dollar_to_currency = Number();
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        let { name, description, amount, type, date, category, budget } = req.body;
+        Logger.log('Initalizing /api/transaction/:username PUT ROUTE.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if savings name, amount, type, date, and category are missing
+        if (!name || amount == undefined || !type || !date || !category ) {
+            Logger.error(`Error: User is missing the required inputs: name, amount, type, date, and category`);
+            res.status(400).json({ message: `You are missing the required transaction inputs: name, amount, type, date, and category`});
+            return;
+        }
+
+        // Return the user's id and currency settings
+        selectQuery = "SELECT user_id, user_username, c. currency_code, dollar_to_currency FROM user u JOIN currency c ON u.currency_code = c.currency_code WHERE user_username = ?;"
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: User ${usernameFromParameter} was deleted or stopped existing while the process of adding transaction instance is ongoing`);
+            res.status(400).json({ message: `Invalid user` });
+            return;
+        }
+        userID = Number(resultQuery[0].user_id);
+        dollar_to_currency = Number(resultQuery[0].dollar_to_currency);
+
+        // Return the current count of the user's savings then add 1 for sequence
+        selectQuery = "SELECT transaction_sequence AS current_transaction_num FROM transaction WHERE user_id = ? ORDER BY transaction_sequence DESC LIMIT 1;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [userID]);
+        console.log(resultQuery);
+        if (resultQuery.length > 1) {
+            Logger.error(`Error: User ${userID} was deleted or stopped existing while the process of adding transaction instance is ongoing`);
+            res.status(400).json({ message: `Invalid user` });
+            return;
+        }
+        // If there is no result, that means there are no savings record yet; so begin with 1
+        if (resultQuery.length === 0) {
+            transactionCurrentCount = 1;
+        } else {
+            transactionCurrentCount = Number(resultQuery[0].current_transaction_num) + 1;
+        }
+        
+        // Neutralize the inputs: remove excessive whitespace and convert the numbers into dollar
+        name = name.trim().replace(/\s+/g, ' ');
+        description = typeof description === 'string' ? description.replace(/\s+/g, ' ').trim() : null;
+        amount = Number(amount) / Number(dollar_to_currency);
+        type = type.replace(/\s+/g, ' ').trim().toLowerCase();
+        date = convertFromInputDateTimeToMySQLTimestamp(date);
+        budget = typeof budget === 'number' ? budget : null;
+
+        // Insert the inputs to the database
+        insertQuery = "INSERT INTO transaction VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        Logger.log(insertQuery);
+        resultQuery = await executeWriteQuery(insertQuery, [userID, transactionCurrentCount, name, description, amount, type, date, category, budget]);
+        Logger.log(`Successfully added the user's transaction information to the database.`);
+        Logger.log(resultQuery);
+
+        res.status(201).json({ message: `Successfully added your transaction, ${name}, to your account!`});
+        return;
+
+        
+    } catch (err) {
+        Logger.error(`Error: A server error occured while adding a transaction instance to the user's account.`);
+        Logger.error(err);
+
+        if (err.sqlMessage) {
+            // Trigger errors
+            // Throw an error if income is the type but budget is NOT NULL
+            if (err.sqlMessage.includes('Income transactions cannot be associated with a budget.')) {
+                Logger.error(`Error: User attempted to enter a type of income while budget is NOT NULL`);
+                res.status(400).json({ message: `Transaction is not allowed to be part of the budget if it's an income type. Only expense transactions can be a part of a budget.` });
+                return;
+            }
+
+            // Throw an error if the transaction's date is outside of the budget's timeframe
+            if (err.sqlMessage.includes('Transaction date is outside of budget timeframe.')) {
+                Logger.error(`Error: User's date is outside of the budget's timeframe`);
+                res.status(400).json({ message: `Transaction's date must be within the budget's timeframe.` });
+                return;
+            }
+        }
+
+        res.status(500).json({ message: `A server error occured while adding a savings information to your account. Please try again later.`});
+        return;
+
     }
 });
 
