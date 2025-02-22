@@ -1,14 +1,18 @@
 <template>
 <section class="retrieve-transaction-component">
-    <section class="is-loading" v-if="!userTransactions.length && isLoading">
+    <section class="add-transaction-link">
+        <RouterLink :to="{ name: 'add-transaction' }">Add Transaction</RouterLink>
+    </section>
+
+    <section class="is-loading" v-if="!userTransactions && isLoading">
         <p>Retrieving your transactions...</p>
     </section>
 
-    <section class="none" v-else-if="!userTransactions.length && !isLoading">
+    <section class="none" v-else-if="!userTransactions && !isLoading">
         <p>You do not have any transactions yet. Add one!</p>
     </section>
 
-    <section class="success" v-else-if="userTransactions.length && !isLoading">
+    <section class="success" v-else-if="userTransactions && !isLoading">
         <section class="search-engines">
             <ul>
                 <li>

@@ -5,16 +5,16 @@
         <RouterLink :to="{ name: 'add-savings' }">Add Savings</RouterLink>
     </section>
 
-    <section class="is-loading" v-if="!userSavings.length && isLoading">
+    <section class="is-loading" v-if="!userSavings && isLoading">
         <p>Retrieving your savings...</p>
     </section>
 
-    <section class="none" v-else-if="!userSavings.length && !isLoading">
+    <section class="none" v-else-if="!userSavings && !isLoading">
         <p>You do not have any savings yet. Add one!</p>
         <p>{{ feedbackFromBackend }}</p>
     </section>
 
-    <section class="success" v-else-if="userSavings.length && !isLoading">
+    <section class="success" v-else-if="userSavings && !isLoading">
         <section class="search-engines">
             <ul>
                 <li>
