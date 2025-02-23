@@ -59,8 +59,9 @@
                     </select>
                 </li>
                 <li>
-                    <button type="submit">
-                        <span>Add Transaction</span>
+                    <button type="submit" :class="{ 'is-loading': isLoadingAddTransaction}">
+                        <span v-if="!isLoadingAddTransaction">Add Transaction</span>
+                        <span v-else>Loading...</span>
                     </button>
                 </li>
             </ul>

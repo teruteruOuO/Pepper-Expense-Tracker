@@ -148,5 +148,93 @@ router.get(`/:username/:currency_code`, authorizeToken, async (req, res) => {
     }
 });
 
+// Add a budget instance to the user's account
+router.post(`/:username`, authorizeToken, async (req, res) => {
+    try {
+        let userID = Number();
+        let selectQuery;
+        let resultQuery;
+        let insertQuery;
+        let dollar_to_currency = Number();
+        const tokenInformation = req.user;
+        const usernameFromParameter = req.params.username;
+        let { name, 
+            description, 
+            limit_amount, 
+            date: { start, end } } = req.body;
+        Logger.log('Initalizing /api/budget/:username PUT ROUTE.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if budget name, limit amount, start, and end dates are not in the request body
+        if (!name || limit_amount == undefined || !start || !end ) {
+            Logger.error(`Error: User is missing the required inputs: name, limit amount, start, and end dates`);
+            res.status(400).json({ message: `You are missing the required budget inputs: name, limit amount, start, and end dates`});
+            return;
+        }
+
+        // Return the user's id and currency settings
+        selectQuery = "SELECT user_id, user_username, c. currency_code, dollar_to_currency FROM user u JOIN currency c ON u.currency_code = c.currency_code WHERE user_username = ?;"
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: User ${usernameFromParameter} was deleted or stopped existing while the process of adding budget instance is ongoing`);
+            res.status(400).json({ message: `Invalid user` });
+            return;
+        }
+        userID = Number(resultQuery[0].user_id);
+        dollar_to_currency = Number(resultQuery[0].dollar_to_currency);
+
+        // Neutralize the inputs: remove excessive whitespace and convert the numbers into dollar
+        name = name.trim().replace(/\s+/g, ' ');
+        description = typeof description === 'string' ? description.replace(/\s+/g, ' ').trim() : null;
+        limit_amount = Number(limit_amount) / Number(dollar_to_currency);
+        start = formatDate(start);
+        end = formatDate(end);
+
+        // Insert the inputs to the database
+        insertQuery = "INSERT INTO budget (user_id, budget_name, budget_description, budget_amount, budget_start_date, budget_end_date) VALUES (?, ?, ?, ?, ?, ?);";
+        Logger.log(insertQuery);
+        resultQuery = await executeWriteQuery(insertQuery, [userID, name, description, limit_amount, start, end]);
+        Logger.log(`Successfully added the user's budget to the database.`);
+        Logger.log(resultQuery);
+
+        res.status(201).json({ message: `Successfully added your budget, ${name}, to your account!`});
+        return;
+
+        
+    } catch (err) {
+        Logger.error(`Error: A server error occured while adding a savings instance to the user's account.`);
+        Logger.error(err);
+
+        if (err.sqlMessage) {
+            // Constraint error messages directly from the database
+            // Throw an error when start date > end date
+            if (err.sqlMessage.includes('chk_budget_dates')) {
+                Logger.error(`Error: The user provided an invalid date`);
+                res.status(400).json({ message: 'Start date must take place before the end date.' });
+                return;
+            }
+
+            // Throw an error when budget amount (limit amount) is 0
+            if (err.sqlMessage.includes('chk_budget_amount')) {
+                Logger.error(`Error: The user provided an invalid limit amount`);
+                res.status(400).json({ message: 'Limit amount MUST not be less than or equal to 0' });
+                return;
+            }
+        }
+
+        res.status(500).json({ message: `A server error occured while adding a savings information to your account. Please try again later.`});
+        return;
+    }
+});
+
 
 export default router;

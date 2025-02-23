@@ -113,7 +113,7 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
             return;
         }
 
-        // Throw an error if savings name, amount, type, date, and category are missing
+        // Throw an error if transaction name, amount, type, date, and category are missing
         if (!name || amount == undefined || !type || !date || !category ) {
             Logger.error(`Error: User is missing the required inputs: name, amount, type, date, and category`);
             res.status(400).json({ message: `You are missing the required transaction inputs: name, amount, type, date, and category`});
