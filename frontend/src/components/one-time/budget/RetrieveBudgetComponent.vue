@@ -1,5 +1,9 @@
 <template>
 <section class="retrieve-budget-component">
+    <section class="add-savings-link">
+        <RouterLink :to="{ name: 'add-budget' }">Add Savings</RouterLink>
+    </section>
+
     <section class="is-loading" v-if="!userBudgets && isLoading">
         <p>Retrieving your budgets...</p>
     </section>
