@@ -2,7 +2,7 @@ import express from 'express';
 import { executeWriteQuery, executeReadQuery, executeTransaction } from '../utilities/pool.js';
 import Logger from '../utilities/logger.js';
 import authorizeToken from '../utilities/authorize-token.js';
-import { convertFromInputDateTimeToMySQLTimestamp } from '../utilities/format-date.js';
+import { convertFromInputDateTimeToMySQLTimestamp, convertMySQLTimestampToHTMLDatetime } from '../utilities/format-date.js';
 
 const router = express.Router();
 
@@ -132,7 +132,7 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
         userID = Number(resultQuery[0].user_id);
         dollar_to_currency = Number(resultQuery[0].dollar_to_currency);
 
-        // Return the current count of the user's savings then add 1 for sequence
+        // Return the current count of the user's transaction then add 1 for sequence
         selectQuery = "SELECT transaction_sequence AS current_transaction_num FROM transaction WHERE user_id = ? ORDER BY transaction_sequence DESC LIMIT 1;";
         Logger.log(selectQuery);
         resultQuery = await executeReadQuery(selectQuery, [userID]);
@@ -142,7 +142,7 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
             res.status(400).json({ message: `Invalid user` });
             return;
         }
-        // If there is no result, that means there are no savings record yet; so begin with 1
+        // If there is no result, that means there are no transaction record yet; so begin with 1
         if (resultQuery.length === 0) {
             transactionCurrentCount = 1;
         } else {
@@ -173,7 +173,7 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
         Logger.error(err);
 
         if (err.sqlMessage) {
-            // Trigger errors
+            // Constraint error messages directly from the database (Trigger from before_insert_transaction)
             // Throw an error if income is the type but budget is NOT NULL
             if (err.sqlMessage.includes('Income transactions cannot be associated with a budget.')) {
                 Logger.error(`Error: User attempted to enter a type of income while budget is NOT NULL`);
@@ -189,7 +189,280 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
             }
         }
 
-        res.status(500).json({ message: `A server error occured while adding a savings information to your account. Please try again later.`});
+        res.status(500).json({ message: `A server error occured while adding a transaction information to your account. Please try again later.`});
+        return;
+
+    }
+});
+
+// Retrieve all the transaction information for a particular transaction instance from the user
+router.get('/:username/instance/:sequence', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let resultQuery;
+        let transactionInformation = {
+            transaction: {
+                sequence: Number(),
+                name: "",
+                description: "",
+                amount: Number(),
+                type: "",
+                date: new Date(),
+            },
+            category: {
+                id: Number(),
+                name: ""
+            },
+            budget: {
+                id: null,
+                name: ""
+            }
+        }
+        let dollar_to_currency = Number();
+        let userId = Number();
+        const transactionSequence = req.params.sequence;
+        const usernameFromParameter = req.params.username;
+        const tokenInformation = req.user;
+        Logger.log('Initalizing /api/transaction/:username/instance/:sequence GET ROUTE.');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if there's no transaction sequence in the request parameter
+        Logger.log(`User's transaction sequence: ${transactionSequence}`);
+        if (!transactionSequence) {
+            Logger.error('Error: User must provide a transaction instance');
+            res.status(400).json({ message: "You must provide a transaction instance." });
+            return;
+        }
+
+        // Retrieve the user's id and currency settings' dollar to currency
+        selectQuery = "SELECT user_id, dollar_to_currency FROM user u JOIN currency c ON u.currency_code = c.currency_code WHERE user_username = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        Logger.log(resultQuery);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: Unable to find ${usernameFromParameter}'s dollar to currency`);
+            res.status(404).json({ message: "Ensure you're using a valid currency. Please return to the accounts page and choose a valid currency." });
+            return;
+        }
+        dollar_to_currency = Number(resultQuery[0].dollar_to_currency);
+        userId = Number(resultQuery[0].user_id);
+
+        // Retrieve user's transaction instance's information (amount is converted to the user's preferred currency)
+        selectQuery = "SELECT transaction_sequence, transaction_name, transaction_description, transaction_amount, transaction_type, transaction_date, c.category_id, category_name, b.budget_id, budget_name FROM transaction t LEFT JOIN category c ON t.category_id = c.category_id LEFT JOIN budget b ON t.budget_id = b.budget_id WHERE transaction_sequence = ? AND t.user_id = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [transactionSequence, userId]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: Unable to find transaction instance for ${transactionSequence} by ${usernameFromParameter}`);
+            res.status(404).json({ message: "Unable to retrieve the transaction instance for you as it may not exist. Only click or refer to the ones that exist in the Transaction Page." });
+            return;
+        }
+        Logger.log(resultQuery);
+        transactionInformation.transaction.sequence = Number(resultQuery[0].transaction_sequence);
+        transactionInformation.transaction.name = resultQuery[0].transaction_name;
+        transactionInformation.transaction.description = resultQuery[0].transaction_description;
+        transactionInformation.transaction.amount = Number((Number(resultQuery[0].transaction_amount) * dollar_to_currency).toFixed(2));
+        transactionInformation.transaction.type = resultQuery[0].transaction_type;
+        transactionInformation.transaction.date = convertMySQLTimestampToHTMLDatetime(resultQuery[0].transaction_date);
+        transactionInformation.category.id = Number(resultQuery[0].category_id);
+        transactionInformation.category.name = resultQuery[0].category_name;
+        transactionInformation.budget.id = resultQuery[0].budget_id ? Number(resultQuery[0].budget_id) : null;
+        transactionInformation.budget.name = resultQuery[0].budget_name;
+        Logger.log('Processed inputs:');
+        Logger.log(transactionInformation);
+
+        Logger.log(`Successfully retrieved ${usernameFromParameter}'s transaction instance #${transactionInformation.transaction.sequence}`);
+        res.status(200).json({
+            message: `Successfully retrieved your transaction instance information.`,
+            transaction_information: transactionInformation
+        });
+        return;
+
+    } catch (err) {
+        Logger.error(`Error: A server error occured while retrieving the transaction instance's information for the user.`);
+        Logger.error(err);
+        res.status(500).json({ message: `A server error occured while retrieiving the transaction instance's information. Please try again later...` });
+        return;
+    }
+});
+
+// Update the transaction instance's information of the user.
+router.put('/:username/:sequence', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let updateQuery;
+        let resultQuery;
+        const transactionSequence = req.params.sequence;
+        const usernameFromParameter = req.params.username;
+        const tokenInformation = req.user;
+        let { 
+            transaction: { name, description, amount, type, date },
+            category_id, budget_id } = req.body;
+        const databaseResult = {
+            id: Number(),
+            dollar_to_currency: Number()
+        }
+        Logger.log('Initalizing /api/transaction/:username/:sequence PUT ROUTE.');
+        
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if there's no transaction sequence in the request parameter
+        Logger.log(`User's transaction sequence: ${transactionSequence}`);
+        if (!transactionSequence) {
+            Logger.error('Error: User must provide a transaction instance');
+            res.status(400).json({ message: "You must provide a transaction instance." });
+            return;
+        }
+
+        // Throw an error if transaction name, amount, type, date, and category are missing
+        if (!name || amount == undefined || !type || !date || !category_id ) {
+            Logger.error(`Error: User is missing the required inputs: name, amount, type, date, and category`);
+            res.status(400).json({ message: `You are missing the required transaction inputs: name, amount, type, date, and category`});
+            return;
+        }
+
+        // Retrieve the user's id and currency settings.
+        selectQuery = "SELECT user_id, dollar_to_currency FROM user u JOIN currency c ON u.currency_code = c.currency_code WHERE user_username = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: User ${usernameFromParameter} was deleted or stopped existing while the process of updating their transaction #${transactionSequence} is ongoing.`);
+            res.status(400).json({ message: `Invalid user` });
+            return;
+        } 
+        databaseResult.dollar_to_currency = Number(resultQuery[0].dollar_to_currency);
+        databaseResult.id = Number(resultQuery[0].user_id);
+
+        // Convert the current and target amounts to USD.
+        amount = Number(amount / databaseResult.dollar_to_currency);
+
+        // Neutralize the inputs: remove excessive whitespace and convert the numbers into dollar
+        name = name.trim().replace(/\s+/g, ' ');
+        description = typeof description === 'string' ? description.replace(/\s+/g, ' ').trim() : null;
+        type = type.replace(/\s+/g, ' ').trim().toLowerCase();
+        date = convertFromInputDateTimeToMySQLTimestamp(date);
+        budget_id = typeof budget_id === 'number' ? budget_id : null;
+
+        // Update transaction instance
+        updateQuery = "UPDATE transaction SET transaction_name = ?, transaction_description = ?, transaction_amount = ?, transaction_type = ?, transaction_date = ?, category_id = ?, budget_id = ? WHERE user_id = ? AND transaction_sequence = ?;";
+        Logger.log(updateQuery);
+        resultQuery = await executeWriteQuery(updateQuery, [
+            name,
+            description,
+            amount,
+            type,
+            date,
+            category_id,
+            budget_id,
+            databaseResult.id,
+            transactionSequence
+        ]);
+        Logger.log(resultQuery);
+
+        Logger.log(`Successfully updated transaction instance ${name} for ${usernameFromParameter}!`);
+        res.status(200).json({ message: `Successfully updated transaction instance ${name}!` });
+        return;
+
+
+    } catch (err) {
+        Logger.error(`Error: A server error occured while updating a transaction instance to the user's account.`);
+        Logger.error(err);
+
+        if (err.sqlMessage) {
+            // Constraint error messages directly from the database (Trigger from before_update_transaction)
+
+            // Throw an error if income is the type but budget is NOT NULL
+            if (err.sqlMessage.includes('Cannot associate income types with any budgets')) {
+                Logger.error(`Error: User attempted to enter a type of income while budget is NOT NULL`);
+                res.status(400).json({ message: `Transaction is not allowed to be part of the budget if it's an income type. Only expense transactions can be part of a budget.` });
+                return;
+            }
+
+            // Throw an error if the transaction's date is outside of the budget's timeframe
+            if (err.sqlMessage.includes('Updated transaction date is outside of budget timeframe.')) {
+                Logger.error(`Error: User's date is outside of the budget's timeframe`);
+                res.status(400).json({ message: `Transaction's date must be within the budget's timeframe.` });
+                return;
+            }
+
+        }
+
+        res.status(500).json({ message: `A server error occured while updating a transaction information to your account. Please try again later.`});
+        return;
+    }
+});
+
+// Delete the transaction instance for the user
+router.delete('/:username/:sequence', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let resultQuery;
+        let deleteQuery;
+        let userId = Number();
+        const transactionSequence = req.params.sequence;
+        const usernameFromParameter = req.params.username;
+        const tokenInformation = req.user;
+        Logger.log('Initializing /api/transaction/:username/:sequence DELETE route');
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if there's no transaction sequence in the request parameter
+        Logger.log(`User's transaction sequence: ${transactionSequence}`);
+        if (!transactionSequence) {
+            Logger.error('Error: User must provide a transaction instance');
+            res.status(400).json({ message: "You must provide a transaction instance." });
+            return;
+        }
+
+        // Retrieve the user's id
+        selectQuery = "SELECT user_id FROM user WHERE user_username = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: User ${usernameFromParameter} was deleted or stopped existing while the process of deleting a transaction instance is ongoing`);
+            res.status(400).json({ message: `Invalid user` });
+            return;
+        }
+        Logger.log(resultQuery);
+        userId = Number(resultQuery[0].user_id);
+
+        // Delete the transaction instance
+        deleteQuery = "DELETE FROM transaction WHERE user_id = ? AND transaction_sequence = ?;";
+        Logger.log(deleteQuery);
+        resultQuery = await executeWriteQuery(deleteQuery, [userId, transactionSequence]);
+        Logger.log(resultQuery);
+
+        Logger.log(`Successfully deleted transaction instance #${transactionSequence} for ${usernameFromParameter}`);
+        res.status(200).json({ message: `Successfully deleted this particular transaction for you.`});
+        return;
+        
+
+    } catch (err) {
+        Logger.error(`Error: A server error occured while attempting to delete the transaction instance for the user.`);
+        Logger.error(err);
+        res.status(500).json({ message: `A server error occured while trying to delete this transaction for you. Please try again later...`});
         return;
 
     }

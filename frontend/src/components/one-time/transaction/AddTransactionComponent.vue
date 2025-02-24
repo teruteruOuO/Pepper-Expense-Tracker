@@ -52,7 +52,7 @@
                 <li v-if="budgetList">
                     <label for="transaction-budget-add">Budget: </label>
                     <select name="transaction-budget-add" id="transaction-budget-add" v-model="userTransactionInput.selectedFromList.budget">
-                        <option :value=null></option>
+                        <option :value=null>None</option>
                         <option v-for="budget in budgetList" :key="budget.id" :value="budget.id">
                             {{ budget.name }}
                         </option>
@@ -106,13 +106,11 @@ const userTransactionInput = reactive({
     },
     category: {
         id: Number(),
-        name: "",
-        selected: Number()
+        name: ""
     },
     budget: {
         id: Number(),
-        name: "",
-        selected: null
+        name: ""
     },
     selectedFromList: {
         type: null,
@@ -150,11 +148,6 @@ const retrieveResources = async () => {
         currencySettings.name = currencyResponse.data.currency.name;
         currencySettings.sign = currencyResponse.data.currency.sign;
 
-        console.log(`categories`);
-        console.log(categoryList.value);
-        console.log(`budgets`);
-        console.log(budgetList.value);
-
     } catch (err) {
         console.error(`An error occured while retrieving the user's preferred currency option, categories, and budgets.`);
         console.error(err);
@@ -170,7 +163,8 @@ const retrieveResources = async () => {
 
 // Add the user's transaction information to the database
 const addTransaction = async () => {
-    isLoadingAddTransaction.value = true;
+    isLoa(`budgets`);
+        console.log(budgetList.value);dingAddTransaction.value = true;
 
     try {
         const body = {

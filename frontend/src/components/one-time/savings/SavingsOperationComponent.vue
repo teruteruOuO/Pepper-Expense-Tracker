@@ -148,7 +148,7 @@ const operateCurrentAmount = async (operation) => {
             input: Number(inputValue.value),
             operation: determiner.present
         }
-        const response = await axios.post(`/api/savings/update-current-amount/${user.userInformation.username}/${savingsInformation.sequence}`, body);
+        const response = await axios.put(`/api/savings/update-current-amount/${user.userInformation.username}/${savingsInformation.sequence}`, body);
         console.log(response.data.message);
 
         // reload the update savings page

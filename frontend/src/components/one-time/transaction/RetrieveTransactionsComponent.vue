@@ -35,7 +35,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="transaction in computedTransactions" :key="transaction.sequence">
+                <tr v-for="transaction in computedTransactions" :key="transaction.sequence" @click="enterTransaction(transaction.sequence)">
                     <td>{{ transaction.name }}</td>
                     <td>{{ transaction.description }}</td>
                     <td>{{ currencySign }}{{ transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
@@ -113,6 +113,11 @@ const computedTransactions = computed(() => {
         );
     });
 });
+
+// Route to update page for each transaction
+const enterTransaction = (sequence) => {
+    router.push({ name: 'update-transaction', params: { sequence } });
+}
 
 onMounted(async () => {
     await retrieveTransactions();

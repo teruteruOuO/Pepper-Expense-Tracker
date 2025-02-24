@@ -282,7 +282,7 @@ router.get(`/:username/current-amount/:sequence`, authorizeToken, async (req, re
 });
 
 // Update the user savings instance's current amount
-router.post('/update-current-amount/:username/:sequence', authorizeToken, async (req, res) => {
+router.put('/update-current-amount/:username/:sequence', authorizeToken, async (req, res) => {
     try {
         let selectQuery;
         let updateQuery;
@@ -297,7 +297,7 @@ router.post('/update-current-amount/:username/:sequence', authorizeToken, async 
             id: Number(),
             dollar_to_currency: Number()
         }
-        Logger.log('Initalizing /api/savings/update-current-amount/:username/:sequence POST ROUTE.');
+        Logger.log('Initalizing /api/savings/update-current-amount/:username/:sequence PUT ROUTE.');
 
         // If the accessing user does not match the user accessing the route with the same username, then throw an error
         Logger.log(`Token Username: ${tokenInformation.username}`);
@@ -424,7 +424,7 @@ router.get('/:username/instance/:sequence', authorizeToken, async (req, res) => 
         Logger.log(selectQuery);
         resultQuery = await executeReadQuery(selectQuery, [savingsSequence, usernameFromParameter]);
         if (resultQuery.length !== 1) {
-            Logger.error(`Error: Unable to find current and target amount information for ${savingsSequence} by ${usernameFromParameter}`);
+            Logger.error(`Error: Unable to find savings instance information for ${savingsSequence} by ${usernameFromParameter}`);
             res.status(404).json({ message: "Unable to retrieve the savings instance for you as it may not exist. Only click or refer to the ones that exist in the Savings Page." });
             return;
         }
@@ -473,7 +473,7 @@ router.get('/:username/instance/:sequence', authorizeToken, async (req, res) => 
 });
 
 // Update the savings instance's information of the user.
-router.post('/update/:username/:sequence', authorizeToken, async (req, res) => {
+router.put('/update/:username/:sequence', authorizeToken, async (req, res) => {
     try {
         let selectQuery;
         let updateQuery;
@@ -488,7 +488,7 @@ router.post('/update/:username/:sequence', authorizeToken, async (req, res) => {
             id: Number(),
             dollar_to_currency: Number()
         }
-        Logger.log('Initalizing /api/savings/update/:username/:sequence POST ROUTE.');
+        Logger.log('Initalizing /api/savings/update/:username/:sequence PUT ROUTE.');
 
         // If the accessing user does not match the user accessing the route with the same username, then throw an error
         Logger.log(`Token Username: ${tokenInformation.username}`);
@@ -547,7 +547,7 @@ router.post('/update/:username/:sequence', authorizeToken, async (req, res) => {
             databaseResult.id,
             savingsSequence
         ]);
-        Logger.log(updateQuery);
+        Logger.log(resultQuery);
 
         Logger.log(`Successfully updated savings instance ${name} for ${usernameFromParameter}!`);
         res.status(200).json({ message: `Successfully updated savings instance ${name}!` });
