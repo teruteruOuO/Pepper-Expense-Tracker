@@ -92,6 +92,8 @@ const savingsInstanceInformation = reactive({
 
 // Retrieve the saving instance's information of the user
 const retrieveSavingsInstance = async () => {
+    isLoadingPage.value = true;
+
     try {
         const response = await axios.get(`/api/savings/${user.userInformation.username}/instance/${route.params.sequence}`);
         console.log(response.data.message);
@@ -114,7 +116,10 @@ const retrieveSavingsInstance = async () => {
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
 
-    } 
+    } finally {
+        isLoadingPage.value = false;
+
+    }
 }
 
 // Ensure optional data like initial is always null when left empty 
@@ -149,7 +154,7 @@ const updateSavingsInstance = async () => {
                 target: Number(savingsInstanceInformation.amount.target)
             }
         }
-        const response = await axios.post(`/api/savings/update/${user.userInformation.username}/${savingsInstanceInformation.sequence}`, body);
+        const response = await axios.put(`/api/savings/update/${user.userInformation.username}/${savingsInstanceInformation.sequence}`, body);
         console.log(response.data.message);
 
         // reload the update savings page
@@ -201,9 +206,7 @@ const deleteSavingsInstance = async () => {
 
 // Automatically retrieve the saving instance information of the user.
 onMounted(async () => {
-    isLoadingPage.value = true;
     await retrieveSavingsInstance();
-    isLoadingPage.value = false;
 });
 </script>
 
