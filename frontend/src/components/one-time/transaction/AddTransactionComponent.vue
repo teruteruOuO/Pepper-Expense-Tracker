@@ -163,8 +163,7 @@ const retrieveResources = async () => {
 
 // Add the user's transaction information to the database
 const addTransaction = async () => {
-    isLoa(`budgets`);
-        console.log(budgetList.value);dingAddTransaction.value = true;
+    isLoadingAddTransaction.value = true;
 
     try {
         const body = {
