@@ -25,7 +25,6 @@
                     <th>Name</th>
                     <th>Description</th>
                     <th>Amount</th>
-                    <th>Type</th>
                     <th>Date</th>
                     <th>Category</th>
                     <th>Status</th>
@@ -40,7 +39,6 @@
                     <td>{{ transaction.name }}</td>
                     <td>{{ transaction.description }}</td>
                     <td>{{ currencySign }}{{ transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-                    <td>{{ transaction.type }}</td>
                     <td>{{ transaction.date }}</td>
                     <td>{{ transaction.category }}</td>
                     <td>
@@ -117,7 +115,6 @@ const computedTransactions = computed(() => {
             transaction.name.toLowerCase().includes(searchTerm) || 
             (transaction.description?.toLowerCase() || '').includes(searchTerm) || // Handle optional description
             transaction.amount.toString().includes(searchTerm) ||
-            transaction.type.toString().includes(searchTerm) ||
             formattedDate.includes(searchTerm) || // Search in formatted deadline
             transaction.category.toString().includes(searchTerm)
         );
