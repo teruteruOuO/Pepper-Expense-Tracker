@@ -50,7 +50,7 @@ router.get(`/:username/:currency_code`, authorizeToken, async (req, res) => {
         currency.sign = resultQuery[0].currency_sign;
 
         // Retrieve all of the user's transactions
-        selectQuery = "SELECT transaction_sequence, transaction_name, transaction_description, transaction_amount, transaction_type, transaction_date, category_name, budget_name FROM transaction t LEFT JOIN user u ON t.user_id = u.user_id LEFT JOIN budget b ON t.budget_id = b.budget_id LEFT JOIN category c ON t.category_id = c.category_id WHERE user_username = ? ORDER BY transaction_date DESC;";
+        selectQuery = "SELECT transaction_sequence, transaction_name, transaction_description, transaction_amount, transaction_type, transaction_date, transaction_resolved, category_name, budget_name FROM transaction t LEFT JOIN user u ON t.user_id = u.user_id LEFT JOIN budget b ON t.budget_id = b.budget_id LEFT JOIN category c ON t.category_id = c.category_id WHERE user_username = ? ORDER BY transaction_date DESC;";
         resultQuery = await executeReadQuery(selectQuery, usernameFromParameter);
         if (resultQuery.length >= 1) {
             userTransactions = resultQuery.map(transaction => {
@@ -61,6 +61,7 @@ router.get(`/:username/:currency_code`, authorizeToken, async (req, res) => {
                     amount: Number((transaction.transaction_amount * currency.dollar_to_currency).toFixed(2)),
                     type: transaction.transaction_type,
                     date: new Date(transaction.transaction_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    resolved: Number(transaction.transaction_resolved),
                     category: transaction.category_name,
                     budget: transaction.budget_name
                 }
@@ -208,6 +209,7 @@ router.get('/:username/instance/:sequence', authorizeToken, async (req, res) => 
                 amount: Number(),
                 type: "",
                 date: new Date(),
+                resolved: null
             },
             category: {
                 id: Number(),
@@ -256,7 +258,7 @@ router.get('/:username/instance/:sequence', authorizeToken, async (req, res) => 
         userId = Number(resultQuery[0].user_id);
 
         // Retrieve user's transaction instance's information (amount is converted to the user's preferred currency)
-        selectQuery = "SELECT transaction_sequence, transaction_name, transaction_description, transaction_amount, transaction_type, transaction_date, c.category_id, category_name, b.budget_id, budget_name FROM transaction t LEFT JOIN category c ON t.category_id = c.category_id LEFT JOIN budget b ON t.budget_id = b.budget_id WHERE transaction_sequence = ? AND t.user_id = ?;";
+        selectQuery = "SELECT transaction_sequence, transaction_name, transaction_description, transaction_amount, transaction_type, transaction_date, transaction_resolved, c.category_id, category_name, b.budget_id, budget_name FROM transaction t LEFT JOIN category c ON t.category_id = c.category_id LEFT JOIN budget b ON t.budget_id = b.budget_id WHERE transaction_sequence = ? AND t.user_id = ?;";
         Logger.log(selectQuery);
         resultQuery = await executeReadQuery(selectQuery, [transactionSequence, userId]);
         if (resultQuery.length !== 1) {
@@ -271,6 +273,7 @@ router.get('/:username/instance/:sequence', authorizeToken, async (req, res) => 
         transactionInformation.transaction.amount = Number((Number(resultQuery[0].transaction_amount) * dollar_to_currency).toFixed(2));
         transactionInformation.transaction.type = resultQuery[0].transaction_type;
         transactionInformation.transaction.date = convertMySQLTimestampToHTMLDatetime(resultQuery[0].transaction_date);
+        transactionInformation.transaction.resolved = Number(resultQuery[0].transaction_resolved);
         transactionInformation.category.id = Number(resultQuery[0].category_id);
         transactionInformation.category.name = resultQuery[0].category_name;
         transactionInformation.budget.id = resultQuery[0].budget_id ? Number(resultQuery[0].budget_id) : null;
@@ -403,6 +406,77 @@ router.put('/:username/:sequence', authorizeToken, async (req, res) => {
         }
 
         res.status(500).json({ message: `A server error occured while updating a transaction information to your account. Please try again later.`});
+        return;
+    }
+});
+
+// Update the transaction instance's resolved attribute
+router.put('/expense-resolution/:username/:sequence', authorizeToken, async (req, res) => {
+    try {
+        let selectQuery;
+        let updateQuery;
+        let resultQuery;
+        const transactionSequence = req.params.sequence;
+        const usernameFromParameter = req.params.username;
+        const tokenInformation = req.user;
+        let { resolved } = req.body;
+        let userId = Number();
+        Logger.log('Initalizing /api/transaction/expense-resolution/:username/:sequence PUT ROUTE.');
+        
+
+        // If the accessing user does not match the user accessing the route with the same username, then throw an error
+        Logger.log(`Token Username: ${tokenInformation.username}`);
+        Logger.log(`Parameter Username: ${usernameFromParameter}`);
+        if (tokenInformation.username !== usernameFromParameter) {
+            Logger.error('Error: User accessing the resource does not match the user in the parameter');
+            res.status(403).json({ message: "You are unauthorized to retrieve this information." });
+            return;
+        }
+
+        // Throw an error if there's no transaction sequence in the request parameter
+        Logger.log(`User's transaction sequence: ${transactionSequence}`);
+        if (!transactionSequence) {
+            Logger.error('Error: User must provide a transaction instance');
+            res.status(400).json({ message: "You must provide a transaction instance." });
+            return;
+        }
+
+        // Throw an error if transaction name, amount, type, date, and category are missing
+        if (resolved == undefined) {
+            Logger.error(`Error: User is missing the transaction resolved input`);
+            res.status(400).json({ message: `You are missing the transaction resolved input`});
+            return;
+        }
+
+        Logger.log(`resolved value is ${resolved}`);
+        resolved = resolved === 1 ? 0 : 1;
+        Logger.log(`resolved value is NOW ${resolved}`);
+
+        // Retrieve the user's id
+        selectQuery = "SELECT user_id FROM user WHERE user_username = ?;";
+        Logger.log(selectQuery);
+        resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
+        if (resultQuery.length !== 1) {
+            Logger.error(`Error: User ${usernameFromParameter} was deleted or stopped existing while the process of updating their transaction #${transactionSequence}'s resolution status is ongoing.`);
+            res.status(400).json({ message: `Invalid user` });
+            return;
+        }
+        userId = Number(resultQuery[0].user_id);
+
+        // Update transaction_resolved for the user
+        updateQuery = "UPDATE transaction SET transaction_resolved = ? WHERE user_id = ? AND transaction_sequence = ?;";
+        Logger.log(updateQuery);
+        resultQuery = await executeWriteQuery(updateQuery, [resolved, userId, transactionSequence]);
+        Logger.log(resultQuery);
+
+        Logger.log(`Successfully updated ${usernameFromParameter}'s transaction #${userId}'s transaction_resolved to ${resolved}.`);
+        res.status(200).json({ message: `Successfully updated your transaction's resolution status.` });
+        return;
+
+    } catch (err) {
+        Logger.error(`Error: A server error occured while attempting to update the transaction_resolved attribute of the transaction instance for the user.`);
+        Logger.error(err);
+        res.status(500).json({ message: `A server error occured while trying to resolve/unresolve your expense transaction instance. Please try again later...`});
         return;
     }
 });
