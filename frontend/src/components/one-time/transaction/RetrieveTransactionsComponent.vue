@@ -32,10 +32,15 @@
                     <th>Date</th>
                     <th>Category</th>
                     <th>Budget Name</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="transaction in computedTransactions" :key="transaction.sequence" @click="enterTransaction(transaction.sequence)">
+                <tr v-for="transaction in computedTransactions" 
+                :key="transaction.sequence" 
+                :id="`transaction-entity-${transaction.sequence}`" 
+                @click="enterTransaction(transaction.sequence)"
+                :class="{ 'unresolved-expenses': transaction.type == 'expense' && transaction.resolved == 0 }">
                     <td>{{ transaction.name }}</td>
                     <td>{{ transaction.description }}</td>
                     <td>{{ currencySign }}{{ transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
@@ -43,6 +48,15 @@
                     <td>{{ transaction.date }}</td>
                     <td>{{ transaction.category }}</td>
                     <td>{{ transaction.budget }}</td>
+                    <td>
+                        <button type="button" 
+                        v-if="transaction.type == 'expense'" 
+                        @click.stop="changeTransactionStatus(transaction)"
+                        :class="{ 'is-loading': isLoadingStatus} ">
+                            <span v-if="!isLoadingStatus">{{ transaction.resolved ? 'Resolved' : 'Unresolved'}}</span>
+                            <span v-else>Loading...</span>
+                        </button>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -53,7 +67,7 @@
 
 <script setup>
 import axios from 'axios';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { RouterLink } from 'vue-router';
 import { useRouter } from 'vue-router';
@@ -62,6 +76,7 @@ import { useRouter } from 'vue-router';
 const user = useUserStore();
 const router = useRouter();
 const isLoading = ref(false);
+const isLoadingStatus = ref(false);
 const userTransactions = ref([]);
 const feedbackFromBackend = ref("");
 const currencySign = ref('');
@@ -119,8 +134,57 @@ const enterTransaction = (sequence) => {
     router.push({ name: 'update-transaction', params: { sequence } });
 }
 
+// Resolve or Unresolve an expense
+const changeTransactionStatus = async (transaction) => {
+    isLoadingStatus.value = true;
+    const answer = window.confirm(`Once you continue, the transaction status for ${transaction.name} will be updated. Continue?`);
+
+    if (!answer) {
+        console.log("The system stopped trying to update the transaction instance status for the user.");
+        isLoadingStatus.value = false;
+        return; // Prevents navigation if the user cancels the prompt
+    } 
+
+    try {
+        const response = await axios.put(`/api/transaction/expense-resolution/${user.userInformation.username}/${transaction.sequence}`, { resolved: transaction.resolved });
+        console.log(response.data.message);
+        alert(response.data.message);
+
+        // Store the clicked row sequence in localStorage before reload
+        localStorage.setItem("lastClickedTransaction", transaction.sequence);
+
+        // Reload the page
+        window.location.reload();
+
+    } catch (err) {
+        console.error(`An error occured while changing ${transaction.name}'s transaction status.`);
+        console.error();
+        alert(err.response.data.message);
+
+    } finally {
+        isLoadingStatus.value = false;
+
+    }
+}
+
 onMounted(async () => {
     await retrieveTransactions();
+
+    // If clicking 
+    const lastClicked = localStorage.getItem("lastClickedTransaction");
+
+    if (lastClicked) {
+        // Find the corresponding row and scroll to it
+        nextTick(() => {
+            const row = document.getElementById(`transaction-entity-${lastClicked}`);
+            if (row) {
+                row.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+
+            // Remove the stored value so it doesn’t keep scrolling on future reloads
+            localStorage.removeItem("lastClickedTransaction");
+        });
+    }
 });
 
 </script>
@@ -135,5 +199,27 @@ table, th, tr, td {
 tbody tr:hover {
     cursor: pointer;
     background-color: pink;
+}
+
+button {
+    border: 1px hidden black;
+    border-radius: 5px;
+    background-color: yellow;
+}
+
+button:active {
+    background-color: rgb(94, 94, 30);
+    color: white;
+}
+
+/* style for isLoading variables */
+.is-loading {
+    background-color: rgb(94, 94, 30);
+    color: gray;
+    cursor: not-allowed;
+}
+
+.unresolved-expenses {
+    background-color: rgb(252, 149, 108);
 }
 </style>

@@ -15,6 +15,9 @@
                 <li>
                     <p>Enter values in {{ currencySettings.name }} {{ currencySettings.sign }}</p>
                 </li>
+                <li v-if="transactionInstanceInformation.transaction.type === 'expense'">
+                    <p>This transaction instance is {{ transactionInstanceInformation.transaction.resolved ? 'Resolved (Paid)' : 'Unresolved (Unpaid)' }}</p>
+                </li>
                 <li>
                     <label for="transaction-name-update">Name: </label>
                     <input type="text" name="transaction-name-update" id="transaction-name-update" required v-model="transactionInstanceInformation.transaction.name">
@@ -113,6 +116,7 @@ const transactionInstanceInformation = reactive({
         amount: Number(),
         type: "",
         date: new Date(),
+        resolved: null
     },
     category: {
         id: Number(),
@@ -161,6 +165,7 @@ const retrieveTransactionInstance = async () => {
         transactionInstanceInformation.transaction.amount = transactionInstanceResponse.data.transaction_information.transaction.amount;
         transactionInstanceInformation.transaction.type = transactionInstanceResponse.data.transaction_information.transaction.type;
         transactionInstanceInformation.transaction.date = transactionInstanceResponse.data.transaction_information.transaction.date;
+        transactionInstanceInformation.transaction.resolved = transactionInstanceResponse.data.transaction_information.transaction.resolved;
         transactionInstanceInformation.category.id = transactionInstanceResponse.data.transaction_information.category.id;
         transactionInstanceInformation.category.name = transactionInstanceResponse.data.transaction_information.category.name;
         transactionInstanceInformation.budget.id = transactionInstanceResponse.data.transaction_information.budget.id;
