@@ -159,9 +159,9 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
         budget = typeof budget === 'number' ? budget : null;
 
         // Insert the inputs to the database
-        insertQuery = "INSERT INTO transaction VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        insertQuery = "INSERT INTO transaction VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         Logger.log(insertQuery);
-        resultQuery = await executeWriteQuery(insertQuery, [userID, transactionCurrentCount, name, description, amount, type, date, category, budget]);
+        resultQuery = await executeWriteQuery(insertQuery, [userID, transactionCurrentCount, name, description, amount, type, date, category, budget, 0]);
         Logger.log(`Successfully added the user's transaction information to the database.`);
         Logger.log(resultQuery);
 
