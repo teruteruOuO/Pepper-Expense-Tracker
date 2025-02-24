@@ -81,6 +81,12 @@ const router = createRouter({
             component: () => import('../views/AddBudgetView.vue')
         },
         {
+            path: '/budget/:budget_id',
+            name: 'update-budget',
+            meta: { requiresAuth: true },
+            component: () => import('../views/UpdateBudgetView.vue')
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: { name: 'dashboard' }
         }

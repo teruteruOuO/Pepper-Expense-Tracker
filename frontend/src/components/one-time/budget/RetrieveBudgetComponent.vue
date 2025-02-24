@@ -35,7 +35,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="budget in computedBudgets" :key="budget.id">
+                <tr v-for="budget in computedBudgets" :key="budget.id" @click="enterBudget(budget.id)">
                     <td>{{ budget.name }}</td>
                     <td>{{ budget.description }}</td>
                     <td>{{ currencySign }}{{ budget.amount.used.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
@@ -117,6 +117,11 @@ const computedBudgets = computed(() => {
         );
     });
 });
+
+// Route to update page for each savings
+const enterBudget = (budget_id) => {
+    router.push({ name: 'update-budget', params: { budget_id } });
+}
 
 onMounted(async () => {
     await retrieveBudgets();
