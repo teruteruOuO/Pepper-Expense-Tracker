@@ -17,7 +17,6 @@ export const authorizeToken = async () => {
         // Automatically log out the user if there's an authorization issue (ex: expired token)
         if (err.response && err.response.status === 401) {
             console.error(err.response.data.message);
-            alert(`Your login session has expired. Please login again`);
             user.resetUserStore();
         }
 
