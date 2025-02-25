@@ -16,7 +16,7 @@
                     <p>Enter values in {{ currencySettings.name }} {{ currencySettings.sign }}</p>
                 </li>
                 <li v-if="transactionInstanceInformation.transaction.type === 'expense'">
-                    <p>This transaction instance is {{ transactionInstanceInformation.transaction.resolved ? 'Resolved (Paid)' : 'Unresolved (Unpaid)' }}</p>
+                    <p>This expense is {{ transactionInstanceInformation.transaction.resolved ? 'Resolved (Paid)' : 'Unresolved (Unpaid)' }}</p>
                 </li>
                 <li>
                     <label for="transaction-name-update">Name: </label>
@@ -73,6 +73,20 @@
                         <span v-else>Deleting...</span>
                     </button>
                 </li>
+                <li>
+                    <button 
+                    type="button" 
+                    @click="changeTransactionStatus()" 
+                    v-if="transactionInstanceInformation.transaction.type === 'expense'" :class="{ 'is-loading': isLoadingResolveStatus }">
+                        <span v-if="!isLoadingResolveStatus">
+                            <span v-if="transactionInstanceInformation.transaction.resolved">Unresolve</span>
+                            <span v-else>Resolve</span>
+                        </span>
+                        <span v-else>
+                            Loading...
+                        </span>
+                    </button>
+                </li>
             </ul>
         </form>
 
@@ -94,6 +108,7 @@ import { useRoute, useRouter } from 'vue-router';
 const isLoadingPage = ref(false);
 const isLoadingUpdate = ref(false);
 const isLoadingDelete = ref(false);
+const isLoadingResolveStatus = ref(false);
 const retrieveResourcesFail = ref(false);
 const feedBackFromBackend = reactive({
     message: '',
@@ -261,6 +276,36 @@ const deleteTransactionInstance = async () => {
     } finally {
         isLoadingDelete.value = false;
         
+    }
+}
+
+// Resolve or Unresolve an expense
+const changeTransactionStatus = async () => {
+    isLoadingResolveStatus.value = true;
+    const answer = window.confirm(`Once you continue, the transaction status for ${transactionInstanceInformation.transaction.name} will be updated. Continue?`);
+
+    if (!answer) {
+        console.log("The system stopped trying to update the transaction instance status for the user.");
+        isLoadingResolveStatus.value = false;
+        return; // Prevents navigation if the user cancels the prompt
+    } 
+
+    try {
+        const response = await axios.put(`/api/transaction/expense-resolution/${user.userInformation.username}/${transactionInstanceInformation.transaction.sequence}`, { resolved: transactionInstanceInformation.transaction.resolved });
+        console.log(response.data.message);
+        alert(response.data.message);
+
+        // Reload the page
+        window.location.reload();
+
+    } catch (err) {
+        console.error(`An error occured while changing ${transactionInstanceInformation.transaction.name}'s transaction status.`);
+        console.error();
+        alert(err.response.data.message);
+
+    } finally {
+        isLoadingResolveStatus.value = false;
+
     }
 }
 
