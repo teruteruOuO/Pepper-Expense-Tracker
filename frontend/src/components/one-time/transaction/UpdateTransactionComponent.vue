@@ -29,7 +29,7 @@
                 </li>
                 <li>
                     <label for="transaction-amount-update">Amount: {{ currencySettings.sign }}</label>
-                    <input type="number" name="transaction-amount-update" id="transaction-amount-update" step="0.01" v-model="transactionInstanceInformation.transaction.amount">
+                    <input type="number" name="transaction-amount-update" id="transaction-amount-update" step="0.01" v-model="transactionInstanceInformation.transaction.amount" required>
                 </li>
                 <li>
                     <label for="transaction-type-update">Type: </label>

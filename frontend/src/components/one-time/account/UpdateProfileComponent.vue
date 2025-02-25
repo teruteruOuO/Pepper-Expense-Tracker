@@ -1,62 +1,67 @@
 <template>
 <section class="update-account-information">
     <h2>Update Profile Information</h2>
-    <form @submit.prevent="updateProfileInformation()">
-        <ul>
-            <li>
-                <label for="first-name">First Name: </label>
-                <input type="text" name="first-name" id="first-name" required v-model="currentUserInformation.name.first">
-            </li>
-            <li>
-                <label for="initial">Initial: </label>
-                <input type="text" name="initial" id="initial" minlength="1" maxlength="1" v-model="currentUserInformation.name.initial">
-            </li>
-            <li>
-                <label for="last-name">Last Name: </label>
-                <input type="text" name="last-name" id="last-name" required v-model="currentUserInformation.name.last">
-            </li>
-            <li>
-                <label for="address">Address: </label>
-                <input type="text" name="address" id="address" required v-model="currentUserInformation.location.address">
-            </li>
-            <li>
-                <label for="city">City: </label>
-                <input type="text" name="city" id="city" required v-model="currentUserInformation.location.city">
-            </li>
-            <li>
-                <label for="state">State: </label>
-                <select name="currency_code" id="currency_code" required v-if="isLoadingProfile">
-                    <option value="loading">Loading...</option>
-                </select>
-                <select name="state" id="state" required v-model="currentUserInformation.location.state" v-else>
-                    <option v-for="state in statesList" :key="state.abbreviation" :value="state.abbreviation">{{ state.name }}</option>
-                </select>
-            </li>
-            <li>
-                <label for="zip">Zip: </label>
-                <input type="text" name="zip" id="zip" v-model="currentUserInformation.location.zip" @input="validateZip" pattern="^\d{5}$" maxlength="5" required>
-            </li>
-            <li>
-                <label for="currency_code">Preferred Currency: </label>
-                <select name="currency_code" id="currency_code" required v-if="isLoadingCurrencyOptions">
-                    <option value="loading">Loading...</option>
-                </select>
-                <select name="currency_code" id="currency_code" required v-model="currentUserInformation.currency.code" v-else>
-                    <option v-for="currency in currencyOptions" :key="currency.code" :value="currency.code">{{ currency.name }}</option>
-                </select>
-            </li>
-            <li>
-                <button type="submit" :class="{ 'is-loading': isLoadingUpdateProfile }">
-                    <span v-if="!isLoadingUpdateProfile">Update Account</span>
-                    <span v-else>Loading...</span>
-                </button>
-            </li>
-        </ul>
-    </form>
-
-    <section class="feedback">
-        <p>{{ feedbackFromBackend }}</p>
+    <section class="loading" v-if="isLoadingComponent">
+        <p>Retrieving your profile information...</p>
     </section>
+
+    <section :class="{ 'feedback-fail': !feedbackFromBackend.success }" v-else-if="retrieveResourcesFail">
+        <p>{{ feedbackFromBackend.message }}</p>
+    </section>
+
+    <section class="success" v-else>
+        <form @submit.prevent="updateProfileInformation()">
+            <ul>
+                <li>
+                    <label for="first-name">First Name: </label>
+                    <input type="text" name="first-name" id="first-name" required v-model="currentUserInformation.name.first">
+                </li>
+                <li>
+                    <label for="initial">Initial: </label>
+                    <input type="text" name="initial" id="initial" minlength="1" maxlength="1" v-model="currentUserInformation.name.initial">
+                </li>
+                <li>
+                    <label for="last-name">Last Name: </label>
+                    <input type="text" name="last-name" id="last-name" required v-model="currentUserInformation.name.last">
+                </li>
+                <li>
+                    <label for="address">Address: </label>
+                    <input type="text" name="address" id="address" required v-model="currentUserInformation.location.address">
+                </li>
+                <li>
+                    <label for="city">City: </label>
+                    <input type="text" name="city" id="city" required v-model="currentUserInformation.location.city">
+                </li>
+                <li>
+                    <label for="state">State: </label>
+                    <select name="state" id="state" required v-model="currentUserInformation.location.state">
+                        <option v-for="state in statesList" :key="state.abbreviation" :value="state.abbreviation">{{ state.name }}</option>
+                    </select>
+                </li>
+                <li>
+                    <label for="zip">Zip: </label>
+                    <input type="text" name="zip" id="zip" v-model="currentUserInformation.location.zip" @input="validateZip" pattern="^\d{5}$" maxlength="5" required>
+                </li>
+                <li>
+                    <label for="currency_code">Preferred Currency: </label>
+                    <select name="currency_code" id="currency_code" required v-model="currentUserInformation.currency.code">
+                        <option v-for="currency in currencyOptions" :key="currency.code" :value="currency.code">{{ currency.name }}</option>
+                    </select>
+                </li>
+                <li>
+                    <button type="submit" :class="{ 'is-loading': isLoadingUpdateProfile }">
+                        <span v-if="!isLoadingUpdateProfile">Update Account</span>
+                        <span v-else>Loading...</span>
+                    </button>
+                </li>
+            </ul>
+        </form>
+
+        <section class="feedback" :class=" { 'feedback-fail': !feedbackFromBackend.success }">
+            <p>{{ feedbackFromBackend.message }}</p>
+        </section>
+    </section>
+
 </section>
 </template>
 
@@ -69,10 +74,13 @@ import { statesList } from '@/assets/misc-scripts/state-list';
 
 // Initialize variables
 const user = useUserStore();
-const isLoadingProfile = ref(false);
-const isLoadingCurrencyOptions = ref(false);
+const retrieveResourcesFail = ref(false);
 const isLoadingUpdateProfile = ref(false);
-const feedbackFromBackend = ref("");
+const isLoadingComponent = ref(false);
+const feedbackFromBackend = reactive({
+    message: '',
+    success: false
+});
 const currencyOptions = ref([]);
 const currentUserInformation = reactive({
     name: {
@@ -109,17 +117,7 @@ const validateZip = () => {
 
 // Function for requesting and retrieving the user's profile information
 const requestUserInformation = async () => {
-    isLoadingProfile.value = true;
-    isLoadingCurrencyOptions.value = true;
-
-    let loadingState = isLoadingProfile.value ? "Loading..." : null;
-    currentUserInformation.name.first = loadingState;
-    currentUserInformation.name.initial = loadingState;
-    currentUserInformation.name.last = loadingState;
-    currentUserInformation.currency.code = loadingState;
-    currentUserInformation.location.address = loadingState;
-    currentUserInformation.location.city = loadingState;
-    currentUserInformation.location.state = loadingState;
+    isLoadingComponent.value = true;
 
     try {
         const response = await axios.get(`/api/user/profile/${user.userInformation.username}`);
@@ -144,11 +142,12 @@ const requestUserInformation = async () => {
     } catch (err) {
         console.error("An error occcured during a GET request for user's basic information in Update Account Component.");
         console.error(err);
-        feedbackFromBackend.value = err.response.data.message;
+        feedbackFromBackend.message = err.response.data.message;
+        feedbackFromBackend.success = false;
+        retrieveResourcesFail.value = true;
 
     } finally {
-        isLoadingProfile.value = false;
-        isLoadingCurrencyOptions.value = false;
+        isLoadingComponent.value = false;
 
     }
 }
@@ -192,7 +191,8 @@ const updateProfileInformation = async (req, res) => {
     } catch (err) {
         console.error(`An error occured while attempting to update the user's profile information in UpdateProfileComponent in Account View.`);
         console.error(err);
-        feedbackFromBackend.value = err.response.data.message;
+        feedbackFromBackend.message = err.response.data.message;
+        feedbackFromBackend.success = false;
 
     } finally {
         isLoadingUpdateProfile.value = false;
@@ -226,8 +226,12 @@ button:active {
     color: white;
 }
 
-.feedback {
+.feedback-fail {
     color: red;
+}
+
+.feedback-success {
+    color: green;
 }
 
 /* style for isLoading variables */
