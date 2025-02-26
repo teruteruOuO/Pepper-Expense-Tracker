@@ -17,6 +17,9 @@ import category from './routes/category.js';
 // Allow hidden backend variables (from .env) to be used in the application
 dotenv.config();
 
+// Auto-starts the scheduler
+import './jobs/schedule.js'; 
+
 // Create an instance of an express application
 const app = express();
 
