@@ -4,6 +4,11 @@ export function formatDate(dateString) {
     return date.toISOString().split('T')[0]; // Extracts YYYY-MM-DD
 }
 
+export function longDateFormat(dateString) {
+    const date = new Date(dateString); 
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 export function convertFromInputDateTimeToMySQLTimestamp(inputDateTime) {
     const date = new Date(inputDateTime);
     
