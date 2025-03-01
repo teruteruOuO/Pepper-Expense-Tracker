@@ -13,6 +13,7 @@ import savings from './routes/savings.js';
 import transaction from './routes/transaction.js';
 import budget from './routes/budget.js';
 import category from './routes/category.js';
+import dashboard from './routes/dashboard.js';
 
 // Allow hidden backend variables (from .env) to be used in the application
 dotenv.config();
@@ -44,6 +45,7 @@ app.use('/api/savings', savings);
 app.use('/api/transaction', transaction);
 app.use('/api/budget', budget);
 app.use('/api/category', category);
+app.use('/api/dashboard', dashboard);
 
 // Start backend server operation
 app.listen(process.env.APP_PORT, () => {
