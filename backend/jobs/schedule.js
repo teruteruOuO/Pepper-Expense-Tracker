@@ -39,7 +39,7 @@ cron.schedule(
             let transporter = nodemailer.createTransport(myEmail);
 
             // Retrieve budgets due soon for each user
-            selectQuery = `SELECT user_username, user_email, budget_id, budget_name, CONVERT_TZ(b.budget_end_date, 'UTC', 'America/Chicago') AS budget_end_date, ROUND((budget_used_amount / budget_amount) * 100, 2) AS budget_progress, DATEDIFF(CONVERT_TZ(b.budget_end_date, 'UTC', 'America/Chicago'), CURDATE()) AS days_until_due FROM user u JOIN budget b ON u.user_id = b.user_id WHERE CONVERT_TZ(b.budget_end_date, 'UTC', 'America/Chicago') BETWEEN CONVERT_TZ(NOW(), 'UTC', 'America/Chicago') AND DATE_ADD(CONVERT_TZ(NOW(), 'UTC', 'America/Chicago'), INTERVAL 30 DAY) AND user_notification = 1 ORDER BY user_username`;
+            selectQuery = `SELECT user_username, user_email, budget_id, budget_name, budget_end_date, ROUND((budget_used_amount / budget_amount) * 100, 2) AS budget_progress, DATEDIFF(budget_end_date, CURDATE()) AS days_until_due FROM user u JOIN budget b ON u.user_id = b.user_id WHERE budget_end_date BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY) AND user_notification = 1 ORDER BY user_username;`;
             resultQuery = await executeReadQuery(selectQuery);
             if (!resultQuery.length) {
                 Logger.log(`There are no budgets that are due soon for any user`);
@@ -73,7 +73,7 @@ cron.schedule(
             }
 
             // Retrieve savings due soon for each user
-            selectQuery = "SELECT user_username, user_email, savings_sequence, savings_name, CONVERT_TZ(s.savings_deadline_date, 'UTC', 'America/Chicago') AS savings_deadline_date, ROUND((savings_current_amount / savings_target_amount) * 100, 2) AS savings_progress, DATEDIFF(CONVERT_TZ(s.savings_deadline_date, 'UTC', 'America/Chicago'), CURDATE()) AS days_until_due FROM user u JOIN savings s ON u.user_id = s.user_id WHERE CONVERT_TZ(s.savings_deadline_date, 'UTC', 'America/Chicago') BETWEEN CONVERT_TZ(NOW(), 'UTC', 'America/Chicago') AND DATE_ADD(CONVERT_TZ(NOW(), 'UTC', 'America/Chicago'), INTERVAL 30 DAY) AND user_notification = 1 ORDER BY user_username;";
+            selectQuery = "SELECT user_username, user_email, savings_sequence, savings_name, savings_deadline_date, ROUND((savings_current_amount / savings_target_amount) * 100, 2) AS savings_progress, DATEDIFF(savings_deadline_date, CURDATE()) AS days_until_due FROM user u JOIN savings s ON u.user_id = s.user_id WHERE savings_deadline_date BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY) AND user_notification = 1 ORDER BY user_username;";
             resultQuery = await executeReadQuery(selectQuery);
             if (!resultQuery.length) {
                 Logger.log(`There are no savings that are due soon for any user`);
@@ -110,7 +110,7 @@ cron.schedule(
             }
 
             // Retrieve unresolved expense transactions due soon for each user
-            selectQuery = "SELECT user_username, user_email, transaction_sequence, transaction_name, CONVERT_TZ(t.transaction_date, 'UTC', 'America/Chicago') AS transaction_date, DATEDIFF(CONVERT_TZ(t.transaction_date, 'UTC', 'America/Chicago'), CURDATE()) AS days_until_due FROM user u JOIN transaction t ON u.user_id = t.user_id WHERE CONVERT_TZ(t.transaction_date, 'UTC', 'America/Chicago') BETWEEN CONVERT_TZ(NOW(), 'UTC', 'America/Chicago') AND DATE_ADD(CONVERT_TZ(NOW(), 'UTC', 'America/Chicago'), INTERVAL 30 DAY) AND transaction_resolved = 0 AND transaction_type = 'expense' AND user_notification = 1 ORDER BY user_username;";
+            selectQuery = "SELECT user_username, user_email, transaction_sequence, transaction_name, transaction_date,  DATEDIFF(transaction_date, CURDATE()) AS days_until_due FROM user u JOIN transaction t ON u.user_id = t.user_id WHERE transaction_date BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY) AND transaction_resolved = 0 AND transaction_type = 'expense' AND user_notification = 1 ORDER BY user_username;";
             resultQuery = await executeReadQuery(selectQuery);
             if (!resultQuery.length) {
                 Logger.log(`There are no expense transactions that are due soon for any user`);
@@ -146,7 +146,7 @@ cron.schedule(
             }
 
             // Retrieve unresolved expense transactions that are overdue for each user
-            selectQuery = "SELECT user_username, user_email, transaction_sequence, transaction_name, CONVERT_TZ(t.transaction_date, 'UTC', 'America/Chicago') AS transaction_date, DATEDIFF(CONVERT_TZ(NOW(), 'UTC', 'America/Chicago'), CONVERT_TZ(t.transaction_date, 'UTC', 'America/Chicago')) AS days_overdue FROM user u JOIN transaction t ON u.user_id = t.user_id WHERE CONVERT_TZ(t.transaction_date, 'UTC', 'America/Chicago') < CONVERT_TZ(NOW(), 'UTC', 'America/Chicago') AND transaction_resolved = 0 AND transaction_type = 'expense' AND user_notification = 1 ORDER BY user_username;";
+            selectQuery = "SELECT user_username, user_email, transaction_sequence, transaction_name, transaction_date, DATEDIFF(NOW(), transaction_date) AS days_overdue FROM user u JOIN transaction t ON u.user_id = t.user_id WHERE transaction_date < NOW() AND transaction_resolved = 0 AND transaction_type = 'expense' AND user_notification = 1 ORDER BY user_username;";
             resultQuery = await executeReadQuery(selectQuery);
             if (!resultQuery.length) {
                 Logger.log(`There are no expense transactions that are overdue for any user`);
