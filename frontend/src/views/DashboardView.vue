@@ -1,13 +1,13 @@
 <template>
 <main class="dashboard-view">
     <h1>Dashboard Page</h1>
-    <p>Hello {{ user.userInformation.first_name }}! Your current currency settings is {{ user.userInformation.currency_code }}</p>
-
+    <MonthlySummaryComponent />
 </main>
 </template>
 
 <script setup>
 import { useUserStore } from '@/stores/user';
+import MonthlySummaryComponent from '@/components/one-time/dashboard/monthly-summary/MonthlySummaryComponent.vue';
 
 const user = useUserStore();
 </script>
