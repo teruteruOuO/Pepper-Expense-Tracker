@@ -31,14 +31,14 @@ const data = computed(() => ({
     datasets: [
         {
             label: 'Daily Total Expense',
-            borderColor: '#f87979',
-            backgroundColor: 'rgba(248, 121, 121, 0.2)',
+            borderColor: 'pink',
+            backgroundColor: 'pink',
             data: transactionExpense.value
         },
         {
             label: 'Daily Total Income',
-            borderColor: '#41B883',
-            backgroundColor: 'rgba(65, 184, 131, 0.2)',
+            borderColor: 'red',
+            backgroundColor: 'red',
             data: transactionIncome.value
         }
     ]

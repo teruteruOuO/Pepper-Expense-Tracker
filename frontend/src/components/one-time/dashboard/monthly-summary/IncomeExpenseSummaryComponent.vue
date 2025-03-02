@@ -24,7 +24,7 @@ const data = computed(() => ({
     labels: transactionType.value,
     datasets: [
         {
-            backgroundColor: ['#E46651', '#41B883'],
+            backgroundColor: ['pink', 'red'],
             data: transactionAmount.value
         }
     ]

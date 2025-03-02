@@ -94,7 +94,7 @@ router.get(`/deadlines/:username`, authorizeToken, async (req, res) => {
                     sequence: Number(transaction.transaction_sequence),
                     name: transaction.transaction_name,
                     deadline: transaction.transaction_date,
-                    days_until_due: Number(transaction.days_overdue)
+                    days_overdue: Number(transaction.days_overdue)
                 }
             });
             Logger.log(`Expense Transaction overdue summary for ${usernameFromParameter}`);
