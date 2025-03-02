@@ -1,15 +1,14 @@
 <template>
 <section class="update-savings-component">
     <h2>Update Savings Component</h2>
-    <section class="loading" v-if="isLoadingPage">
-        <p>Retrieving the savings...</p>
+    <section class="loader" v-if="isLoadingPage">
     </section>
 
-    <section class="failed" v-else-if="!isLoadingPage && !savingsInstanceInformation.information">
+    <section class="failed" v-else-if="retrieveResourcesFail">
         <p>{{ feedBackFromBackend.message }}</p>
     </section>
 
-    <section class="success" v-else-if="!isLoadingPage && savingsInstanceInformation.information">
+    <section class="success" v-else>
         <form @submit.prevent="updateSavingsInstance()">
             <h3>Update Savings information</h3>
             <ul>
@@ -66,6 +65,7 @@ import { useRoute, useRouter } from 'vue-router';
 const isLoadingPage = ref(false);
 const isLoadingUpdate = ref(false);
 const isLoadingDelete = ref(false);
+const retrieveResourcesFail = ref(false);
 const feedBackFromBackend = reactive({
     message: '',
     success: false
@@ -115,6 +115,7 @@ const retrieveSavingsInstance = async () => {
         console.error(err);
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
+        retrieveResourcesFail.value = true;
 
     } finally {
         isLoadingPage.value = false;

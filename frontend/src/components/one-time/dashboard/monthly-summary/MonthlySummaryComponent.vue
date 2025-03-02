@@ -2,8 +2,7 @@
 <section class="monthly-summary-component">
     <h2>Monthly Summary Component</h2>
 
-    <section class="loading" v-if="isLoadingPage">
-        <p>Retrieving your summary for the month of {{ new Date().toLocaleString('en-US', { month: 'long', timeZone: 'UTC' }) }}...</p>
+    <section class="loader" v-if="isLoadingPage">
     </section>
 
     <section class="retrieve-fail" v-else-if="retrieveResourcesFail">

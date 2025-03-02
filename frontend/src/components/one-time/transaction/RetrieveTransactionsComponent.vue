@@ -4,15 +4,18 @@
         <RouterLink :to="{ name: 'add-transaction' }">Add Transaction</RouterLink>
     </section>
 
-    <section class="is-loading" v-if="!userTransactions && isLoading">
-        <p>Retrieving your transactions...</p>
+    <section class="loader" v-if="isLoading">
     </section>
 
-    <section class="none" v-else-if="!userTransactions && !isLoading">
+    <section class="is-loading" v-else-if="retrieveResourcesFail">
+        <p>{{ feedbackFromBackend }}</p>
+    </section>
+
+    <section class="none" v-else-if="!userTransactions">
         <p>You do not have any transactions yet. Add one!</p>
     </section>
 
-    <section class="success" v-else-if="userTransactions && !isLoading">
+    <section class="success" v-else>
         <section class="search-engines">
             <ul>
                 <li>
@@ -77,6 +80,7 @@ const user = useUserStore();
 const router = useRouter();
 const isLoading = ref(false);
 const isLoadingStatus = ref(false);
+const retrieveResourcesFail = ref(false);
 const userTransactions = ref([]);
 const feedbackFromBackend = ref("");
 const currencySign = ref('');
@@ -100,6 +104,7 @@ const retrieveTransactions = async () => {
         console.error(`An error occured while retrieving the user's transactions.`);
         console.error(err);
         feedbackFromBackend.value = err.response.data.message;
+        retrieveResourcesFail.value = true;
     
     } finally {
         isLoading.value = false;

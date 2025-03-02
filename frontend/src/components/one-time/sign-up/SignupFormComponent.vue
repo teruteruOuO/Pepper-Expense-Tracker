@@ -1,74 +1,84 @@
 <template>
 <section class="signup-form-component">
     <h2>Sign Up Form</h2>
-    <form @submit.prevent="signupUser()">
-        <ul>
-            <li>
-                <label for="first">First Name: </label>
-                <input type="text" name="first" id="first" required v-model="userSignupInformation.name.first">
-            </li>
-            <li>
-                <label for="initial">Middle Name: </label>
-                <input type="text" name="initial" id="initial" minlength="1" maxlength="1" v-model="userSignupInformation.name.initial">
-            </li>
-            <li>
-                <label for="last">Last Name: </label>
-                <input type="text" name="last" id="last" required v-model="userSignupInformation.name.last">
-            </li>
-            <li>
-                <label for="address">Address Name: </label>
-                <input type="text" name="address" id="address" required v-model="userSignupInformation.location.address">
-            </li>
-            <li>
-                <label for="city">City: </label>
-                <input type="text" name="city" id="city" required v-model="userSignupInformation.location.city">
-            </li>
-            <li>
-                <label for="state">State: </label>
-                <select name="state" id="state" required v-model="userSignupInformation.location.state">
-                    <option value="" disabled>Select a state</option>
-                    <option v-for="state in statesList" :key="state.abbreviation" :value="state.abbreviation">{{ state.name }}</option>
-                </select>
-            </li>
-            <li>
-                <label for="zip">Zip: </label>
-                <input type="text" name="zip" id="zip" v-model="userSignupInformation.location.zip" @input="validateZip" pattern="^\d{5}$" maxlength="5" required>
-            </li>
-            <li>
-                <label for="username">Username: </label>
-                <input type="text" name="username" id="username" required v-model="userSignupInformation.credentials.username">
-            </li>
-            <li>
-                <label for="password">Password: </label>
-                <input type="password" name="password" id="password" required v-model="userSignupInformation.credentials.password">
-            </li>
-            <li>
-                <label for="confirm-password">Confirm Password: </label>
-                <input type="password" name="confirm-password" id="confirm-password" required v-model="userSignupInformation.credentials.confirm_password">
-            </li>
-            <li>
-                <label for="currency_code">Preferred Currency: </label>
-                <select name="currency_code" id="currency_code" required v-if="isLoadingCurrencyOptions">
-                    <option value="loading">Loading...</option>
-                </select>
-                <select name="currency_code" id="currency_code" required v-model="selectedCurrency" v-else>
-                    <option v-for="currency in currencyOptions" :key="currency.code" :value="currency.code">{{ currency.name }}</option>
-                </select>
-            </li>
-            <li>
-                <button type="submit">
-                    <span v-if="isLoadingSignup" :class="{ 'is-loading': isLoadingSignup }">Loading...</span>
-                    <span v-else>Sign Up</span>
-                </button>
-            </li>
-        </ul>
-    </form>
-
-    <section class="feedback">
-        <p>{{ confirmPasswordFeedback }}</p>
-        <p>{{ passwordRegExFeedback }}</p>
-        <p :class="{ 'backend-feedback-success': feedbackFromBackendSuccess, 'feedback': !feedbackFromBackendSuccess }">{{ feedbackFromBackend }}</p>
+    <section class="loader" v-if="isLoadingCurrencyOptions">
     </section>
+
+    <section class="retrieve-fail" v-else="retrieveResourcesFail">
+        <p>{{ feedbackFromBackend }}</p>
+    </section>
+
+    <section class="success" v-else>
+        <form @submit.prevent="signupUser()">
+            <ul>
+                <li>
+                    <label for="first">First Name: </label>
+                    <input type="text" name="first" id="first" required v-model="userSignupInformation.name.first">
+                </li>
+                <li>
+                    <label for="initial">Middle Name: </label>
+                    <input type="text" name="initial" id="initial" minlength="1" maxlength="1" v-model="userSignupInformation.name.initial">
+                </li>
+                <li>
+                    <label for="last">Last Name: </label>
+                    <input type="text" name="last" id="last" required v-model="userSignupInformation.name.last">
+                </li>
+                <li>
+                    <label for="address">Address Name: </label>
+                    <input type="text" name="address" id="address" required v-model="userSignupInformation.location.address">
+                </li>
+                <li>
+                    <label for="city">City: </label>
+                    <input type="text" name="city" id="city" required v-model="userSignupInformation.location.city">
+                </li>
+                <li>
+                    <label for="state">State: </label>
+                    <select name="state" id="state" required v-model="userSignupInformation.location.state">
+                        <option value="" disabled>Select a state</option>
+                        <option v-for="state in statesList" :key="state.abbreviation" :value="state.abbreviation">{{ state.name }}</option>
+                    </select>
+                </li>
+                <li>
+                    <label for="zip">Zip: </label>
+                    <input type="text" name="zip" id="zip" v-model="userSignupInformation.location.zip" @input="validateZip" pattern="^\d{5}$" maxlength="5" required>
+                </li>
+                <li>
+                    <label for="username">Username: </label>
+                    <input type="text" name="username" id="username" required v-model="userSignupInformation.credentials.username">
+                </li>
+                <li>
+                    <label for="password">Password: </label>
+                    <input type="password" name="password" id="password" required v-model="userSignupInformation.credentials.password">
+                </li>
+                <li>
+                    <label for="confirm-password">Confirm Password: </label>
+                    <input type="password" name="confirm-password" id="confirm-password" required v-model="userSignupInformation.credentials.confirm_password">
+                </li>
+                <li>
+                    <label for="currency_code">Preferred Currency: </label>
+                    <select name="currency_code" id="currency_code" required v-if="isLoadingCurrencyOptions">
+                        <option value="loading">Loading...</option>
+                    </select>
+                    <select name="currency_code" id="currency_code" required v-model="selectedCurrency" v-else>
+                        <option v-for="currency in currencyOptions" :key="currency.code" :value="currency.code">{{ currency.name }}</option>
+                    </select>
+                </li>
+                <li>
+                    <button type="submit">
+                        <span v-if="isLoadingSignup" :class="{ 'is-loading': isLoadingSignup }">Loading...</span>
+                        <span v-else>Sign Up</span>
+                    </button>
+                </li>
+            </ul>
+        </form>
+
+        <section class="feedback">
+            <p>{{ confirmPasswordFeedback }}</p>
+            <p>{{ passwordRegExFeedback }}</p>
+            <p :class="{ 'backend-feedback-success': feedbackFromBackendSuccess, 'feedback': !feedbackFromBackendSuccess }">{{ feedbackFromBackend }}</p>
+        </section>
+    </section>
+    
 </section>
 </template>
 
@@ -87,6 +97,7 @@ const isLoadingCurrencyOptions = ref(false);
 const isLoadingSignup = ref(false);
 const feedbackFromBackend = ref("");
 const feedbackFromBackendSuccess = ref(false);
+const retrieveResourcesFail = ref(false);
 
 const currencyOptions = ref([]);
 const selectedCurrency = ref("USD");
@@ -242,6 +253,9 @@ const getCurrencyOptions = async () => {
     } catch (err) {
         console.error('An error occured while retrieving currency options in SignupFormComponent in SignupView');
         console.error(err);
+        feedbackFromBackend.value = err.response.data.message;
+        feedbackFromBackendSuccess.value = false;
+        retrieveResourcesFail.value = true;
 
     } finally {
         isLoadingCurrencyOptions.value = false;

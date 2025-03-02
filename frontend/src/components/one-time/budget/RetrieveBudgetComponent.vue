@@ -4,15 +4,18 @@
         <RouterLink :to="{ name: 'add-budget' }">Add Budget</RouterLink>
     </section>
 
-    <section class="is-loading" v-if="!userBudgets && isLoading">
-        <p>Retrieving your budgets...</p>
+    <section class="loader" v-if="isLoading">
     </section>
 
-    <section class="none" v-else-if="!userBudgets && !isLoading">
+    <section class="retrieve-fail" v-else-if="retrieveResourcesFail">
+        <p>{{ feedbackFromBackend }}</p>
+    </section>
+
+    <section class="none" v-else-if="!userBudgets">
         <p>You do not have any budgets yet. Add one!</p>
     </section>
 
-    <section class="success" v-else-if="userBudgets && !isLoading">
+    <section class="success" v-else>
         <section class="search-engines">
             <ul>
                 <li>
@@ -64,6 +67,7 @@ const router = useRouter();
 const isLoading = ref(false);
 const userBudgets = ref([]);
 const feedbackFromBackend = ref("");
+const retrieveResourcesFail = ref(false);
 const currencySign = ref('');
 const searchBudgets = ref('');
 
@@ -85,6 +89,7 @@ const retrieveBudgets = async () => {
         console.error(`An error occured while retrieving the user's budgets.`);
         console.error(err);
         feedbackFromBackend.value = err.response.data.message;
+        retrieveResourcesFail.value = true;
     
     } finally {
         isLoading.value = false;

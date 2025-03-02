@@ -1,8 +1,7 @@
 <template>
 <section class="update-transaction-component">
     <h2>Update Transaction Component</h2>
-    <section class="loading" v-if="isLoadingPage">
-        <p>Retrieving your transaction information, preferred currency, and categories...</p>
+    <section class="loader" v-if="isLoadingPage">
     </section>
 
     <section :class="{ 'feedback-fail': !feedBackFromBackend.success }" v-else-if="retrieveResourcesFail">

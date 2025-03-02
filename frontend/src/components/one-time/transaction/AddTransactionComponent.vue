@@ -1,8 +1,7 @@
 <template>
 <section class="add-transaction-component">
     <h2>Add Transaction Component</h2>
-    <section class="loading" v-if="isLoadingGetCurrencyAndBudgets">
-        <p>Retrieving your budget information, preferred currency, and categories...</p>
+    <section class="loader" v-if="isLoadingGetCurrencyAndBudgets">
     </section>
 
     <section :class="{ 'feedback': !feedBackFromBackend.success }" v-else-if="retrieveResourcesFail">
