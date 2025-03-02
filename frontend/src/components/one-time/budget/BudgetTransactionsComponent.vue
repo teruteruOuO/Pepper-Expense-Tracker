@@ -1,15 +1,18 @@
 <template>
 <section class="budget-transactions-component">
     <h2>Transactions related to this Budget</h2>
-    <section class="is-loading" v-if="!userTransactions && isLoading">
-        <p>Retrieving the budget's transactions...</p>
+    <section class="loader" v-if="isLoading">
     </section>
 
-    <section class="none" v-else-if="!userTransactions && !isLoading">
+    <section class="retrieve-fail" v-else-if="retrieveResourcesFail">
+        <p>{{ feedbackFromBackend }}</p>
+    </section>
+
+    <section class="none" v-else-if="!userTransactions">
         <p>You do not have any transactions for this budget yet</p>
     </section>
 
-    <section class="success" v-else-if="userTransactions && !isLoading">
+    <section class="success" v-else>
         <section class="search-engines">
             <ul>
                 <li>
@@ -70,6 +73,7 @@ const user = useUserStore();
 const router = useRouter();
 const route = useRoute();
 const isLoading = ref(false);
+const retrieveResourcesFail = ref(false);
 const isLoadingStatus = ref(false);
 const userTransactions = ref([]);
 const feedbackFromBackend = ref("");
@@ -94,6 +98,7 @@ const retrieveTransactions = async () => {
         console.error(`An error occured while retrieving the user's transactions for this budget.`);
         console.error(err);
         feedbackFromBackend.value = err.response.data.message;
+        retrieveResourcesFail.value = true;
     
     } finally {
         isLoading.value = false;

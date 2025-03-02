@@ -1,7 +1,14 @@
 <template>
 <section class="notification-component">
     <h2>Notification</h2>
-    <div class="notification-bar">
+    <section class="loader" v-if="isLoadingPage">
+    </section>
+
+    <section class="retrieve-fail" v-else-if="retrieveResourceFail">
+        <p>Unable to retrieve your notification status. Please refresh the page or try again later</p>
+    </section>
+
+    <div class="notification-bar" v-else>
         <label for="notification">Notification status: </label>
         <label class="switch">
             <input type="checkbox" 
@@ -26,6 +33,8 @@ import { useUserStore } from "@/stores/user";
 const user = useUserStore();
 const isNotificationEnabled = ref(0);
 const isLoading = ref(false);
+const retrieveResourceFail = ref(false);
+const isLoadingPage = ref(false);
 
 // Change user's notification status
 const changeNotificationStatus = async (req, res) => {
@@ -53,6 +62,7 @@ const changeNotificationStatus = async (req, res) => {
 
 // Retrieve user's notification status
 const retrieveNotificationStatus = async (req, res) => {
+    isLoadingPage.value = true;
     try {
         const response = await axios.get(`/api/user/notification/${user.userInformation.username}`);
         console.log(response.data.message);
@@ -62,6 +72,10 @@ const retrieveNotificationStatus = async (req, res) => {
         console.error(`A server error occured while retrieving the user's notification setting.`);
         console.error(err);
         isNotificationEnabled.value = 0;
+        retrieveResourceFail.value = true;
+
+    } finally {
+        isLoadingPage.value = false;
     }
 }
 

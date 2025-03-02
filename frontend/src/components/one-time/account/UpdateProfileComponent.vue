@@ -1,8 +1,8 @@
 <template>
 <section class="update-account-information">
     <h2>Update Profile Information</h2>
-    <section class="loading" v-if="isLoadingComponent">
-        <p>Retrieving your profile information...</p>
+    <section class="loader" v-if="isLoadingComponent">
+        <p></p>
     </section>
 
     <section :class="{ 'feedback-fail': !feedbackFromBackend.success }" v-else-if="retrieveResourcesFail">

@@ -1,42 +1,52 @@
 <template>
 <section class="email-change-component">
     <h2>Email Change</h2>
-    <section>
-        <p>Your current email is: {{ currentEmail }} </p>
+    <section class="loader" v-if="isLoadingPage">
     </section>
-    <form @submit.prevent="sendCode()">
-        <ul>
-            <li>
-                <label for="new-email">New Email: </label>
-                <input type="email" name="new-email" id="new-email" required v-model="emailInput.new_email">
-            </li>
-            <li>
-                <button type="submit" :class="{ 'is-loading': isLoadingSendCode }">
-                    <span v-if="!isLoadingSendCode">Send Code</span>
-                    <span v-else>Loading...</span>
-                </button>
-            </li>
-        </ul>
-    </form>
 
-    <form @submit.prevent="verifyCode()">
-        <ul>
-            <li>
-                <label for="code-for-email-change">Code: </label>
-                <input type="text" name="code-for-email-change" id="code-for-email-change" required v-model="emailInput.one_time_code" minlength="6" maxlength="6">
-            </li>
-            <li>
-                <button type="submit" :class="{ 'is-loading': isLoadingVerifyCode }">
-                    <span v-if="!isLoadingVerifyCode">Verify Code and Change Email</span>
-                    <span v-else>Loading...</span>
-                </button>
-            </li>
-        </ul>
-    </form>
-
-    <section :class="{ 'feedback-success': feedbackFromBackendSuccess, 'feedback-fail': !feedbackFromBackendSuccess }">
+    <section class="retrieve-fail" :class="{ 'feedback-success': feedbackFromBackendSuccess, 'feedback-fail': !feedbackFromBackendSuccess }" v-else-if="retrieveResourceFail">
         <p>{{ feedbackFromBackend }}</p>
     </section>
+
+    <section class="success" v-else>
+        <section>
+            <p>Your current email is: {{ currentEmail }} </p>
+        </section>
+        <form @submit.prevent="sendCode()">
+            <ul>
+                <li>
+                    <label for="new-email">New Email: </label>
+                    <input type="email" name="new-email" id="new-email" required v-model="emailInput.new_email">
+                </li>
+                <li>
+                    <button type="submit" :class="{ 'is-loading': isLoadingSendCode }">
+                        <span v-if="!isLoadingSendCode">Send Code</span>
+                        <span v-else>Loading...</span>
+                    </button>
+                </li>
+            </ul>
+        </form>
+
+        <form @submit.prevent="verifyCode()">
+            <ul>
+                <li>
+                    <label for="code-for-email-change">Code: </label>
+                    <input type="text" name="code-for-email-change" id="code-for-email-change" required v-model="emailInput.one_time_code" minlength="6" maxlength="6">
+                </li>
+                <li>
+                    <button type="submit" :class="{ 'is-loading': isLoadingVerifyCode }">
+                        <span v-if="!isLoadingVerifyCode">Verify Code and Change Email</span>
+                        <span v-else>Loading...</span>
+                    </button>
+                </li>
+            </ul>
+        </form>
+
+        <section :class="{ 'feedback-success': feedbackFromBackendSuccess, 'feedback-fail': !feedbackFromBackendSuccess }">
+            <p>{{ feedbackFromBackend }}</p>
+        </section>
+    </section>
+    
 </section> 
 </template>
 
@@ -51,6 +61,8 @@ const user = useUserStore();
 const currentEmail = ref("");
 const isLoadingSendCode = ref(false);
 const isLoadingVerifyCode = ref(false);
+const isLoadingPage = ref(false);
+const retrieveResourceFail = ref(false);
 const feedbackFromBackend = ref("");
 const feedbackFromBackendSuccess = ref(false);
 const emailInput = reactive({
@@ -118,6 +130,8 @@ const verifyCode = async () => {
 
 // Retrieve the user's current email
 const retrieveCurrentEmail = async () => {
+    isLoadingPage.value = true;
+
     try {
         const response = await axios.get(`/api/user/email/${user.userInformation.username}`);
         console.log(response.data.message);
@@ -129,8 +143,12 @@ const retrieveCurrentEmail = async () => {
         feedbackFromBackend.value = err.response.data.message;
         feedbackFromBackendSuccess.value = false;
         currentEmail.value = "unknown";
+        retrieveResourceFail.value = true;
 
-    } 
+    } finally {
+        isLoadingPage.value = false;
+
+    }
 }
 
 // Automatically retrieve the user's current email.

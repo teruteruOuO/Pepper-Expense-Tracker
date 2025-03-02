@@ -5,16 +5,18 @@
         <RouterLink :to="{ name: 'add-savings' }">Add Savings</RouterLink>
     </section>
 
-    <section class="is-loading" v-if="!userSavings && isLoading">
-        <p>Retrieving your savings...</p>
+    <section class="loader" v-if="isLoading">
     </section>
 
-    <section class="none" v-else-if="!userSavings && !isLoading">
-        <p>You do not have any savings yet. Add one!</p>
+    <section class="retrieve-fail" v-else-if="retrieveResourcesFail">
         <p>{{ feedbackFromBackend }}</p>
     </section>
 
-    <section class="success" v-else-if="userSavings && !isLoading">
+    <section class="none" v-else-if="!userSavings">
+        <p>You do not have any savings yet. Add one!</p>
+    </section>
+
+    <section class="success" v-else>
         <section class="search-engines">
             <ul>
                 <li>
@@ -66,6 +68,7 @@ const router = useRouter();
 const isLoading = ref(false);
 const userSavings = ref([]);
 const feedbackFromBackend = ref("");
+const retrieveResourcesFail = ref(false);
 const currencySign = ref('');
 const searchSavings = ref('');
 
@@ -87,6 +90,7 @@ const retrieveSavings = async () => {
         console.error(`An error occured while retrieving the user's savings in RetrieveSavingsComponent in SavingsView.`);
         console.error(err);
         feedbackFromBackend.value = err.response.data.message;
+        retrieveResourcesFail.value = true;
     
     } finally {
         isLoading.value = false;

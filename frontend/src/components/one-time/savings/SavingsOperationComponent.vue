@@ -1,15 +1,14 @@
 <template>
 <section class="savings-operation-component">
     <h2>Savings Operation Component</h2>
-    <section class="loading" v-if="isLoadingPage">
-        <p>Retrieving the savings...</p>
+    <section class="loader" v-if="isLoadingPage">
     </section>
     
-    <section class="failed" v-else-if="!isLoadingPage && !savingsInformation.target" :class="{ 'feedback-fail': !savingsInformation.target, 'feedback-success': savingsInformation.target }">
+    <section class="failed" v-else-if="retrieveResourcesFail" :class="{ 'feedback-fail': !savingsInformation.target, 'feedback-success': savingsInformation.target }">
         <p>{{ feedBackFromBackend.message }}</p>
     </section>
 
-    <section class="success" v-else-if="!isLoadingPage && savingsInformation.target">
+    <section class="success" v-else>
         <form @submit.prevent="">
             <ul>
                 <li>
@@ -54,6 +53,7 @@ import { useRoute, useRouter } from 'vue-router';
 // Initialize variables
 const isLoadingPage = ref(false);
 const isLoadingOperation = ref(false);
+const retrieveResourcesFail = ref(false);
 const feedBackFromBackend = reactive({
     message: '',
     success: false
@@ -75,6 +75,8 @@ const savingsInformation = reactive({
 
 // Retrieve the user saving instance's current and target amount
 const retrieveProgressAmounts = async () => {
+    isLoadingPage.value = true;
+
     try {
         const response = await axios.get(`/api/savings/${user.userInformation.username}/current-amount/${route.params.sequence}`);
         console.log(response.data.message);
@@ -94,12 +96,15 @@ const retrieveProgressAmounts = async () => {
         console.error(err);
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
+        retrieveResourcesFail.value = true;
 
         // If there's no resource (the savings doesn't exist for the user) then reroute them back to the savings page
         if (err.response && err.response.status === 404) {
             alert(feedBackFromBackend.message);
             router.push({ name: 'savings' });
         }
+    } finally {
+        isLoadingPage.value = false;
     }
 }
 
@@ -169,9 +174,7 @@ const operateCurrentAmount = async (operation) => {
 
 
 onMounted(async () => {
-    isLoadingPage.value = true;
     await retrieveProgressAmounts();
-    isLoadingPage.value = false;
 });
 </script>
 
