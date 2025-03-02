@@ -113,6 +113,13 @@ const retrieveMonthlySummary = async () => {
         feedbackFromBackend.success = false;
         retrieveResourcesFail.value = true;
 
+        if (err.response.status === 401 && err.response.data.message == 'Invalid token. Unable to retrieve information') {
+            await axios.post('/api/account/logout');
+            user.resetUserStore();
+            localStorage.removeItem('user');
+            router.push({ name: 'login' });
+        }
+
     } finally {
         isLoadingPage.value = false;
 

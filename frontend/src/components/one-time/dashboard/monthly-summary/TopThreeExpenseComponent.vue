@@ -30,7 +30,7 @@ const data = computed(() => ({
     datasets: [
         {
             label: 'Top Three Expenses',
-            backgroundColor: '#f87979',
+            backgroundColor: 'pink',
             data: transactionAmount.value
         }
     ]

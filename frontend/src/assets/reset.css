@@ -44,33 +44,61 @@ label, button {
 
 /* Load Animation */
 .loader {
-    width: 64px;
-    height: 64px;
+    width: 54px;
+    height: 54px;
     position: relative;
-    animation: rotate 1.5s ease-in infinite alternate;
+    border-radius: 4px;
+    background-color: pink;
+    background-image:
+        radial-gradient(circle 5px , red 100%, transparent 0),
+        radial-gradient(circle 5px , red 100%, transparent 0),
+        radial-gradient(circle 5px , red 100%, transparent 0),
+        radial-gradient(circle 5px , red 100%, transparent 0),
+        radial-gradient(circle 5px , red 100%, transparent 0),
+        radial-gradient(circle 5px , red 100%, transparent 0);
+        background-repeat: no-repeat;
+    animation: move 4s linear infinite , rotate 2s linear infinite;
 }
-.loader::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    color: pink;
-    background: currentColor;
-    width: 64px;
-    height: 32px;
-    border-radius: 0 0 50px 50px;
-}
-.loader::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 10%;
-    background: #ee7474;
-    width: 8px;
-    height: 64px;
-    animation: rotate 1.2s linear infinite alternate-reverse;
+  
+@keyframes rotate {
+    0% , 20%{ transform: rotate(0deg)}
+    30% , 40% { transform: rotate(90deg)}
+    50% , 60% { transform: rotate(180deg)}
+    70% , 80% { transform: rotate(270deg)}
+    90%,  100% { transform: rotate(360deg)}
 }
 
-@keyframes rotate {
-    100% { transform: rotate(360deg)}
+@keyframes move {
+    0% ,  9% {
+        background-position:
+        -12px -15px,  -12px 0px, -12px 15px,
+        12px -15px,  12px 0px,  12px 15px;
+    }
+    10% , 25% {
+        background-position:
+        0px -15px,  -12px 0px, -12px 15px,
+        34px -15px,  12px 0px,  12px 15px;
+    }
+    30% , 45% {
+        background-position:
+        0px -34px, -12px -10px, -12px 12px,
+        34px -15px, 12px -10px, 12px 12px;
+    }
+    50% , 65% {
+        background-position:
+        0px -34px, -12px -34px, -12px 12px,
+        34px -12px, 0px -10px, 12px 12px;
+    }
+    70% , 85% {
+        background-position:
+        0px -34px, -12px -34px, 0px 12px,
+        34px -12px, 0px -10px, 34px 12px;
+    }
+    90% , 100% {
+        background-position:
+        0px -34px, -12px -34px, 0px 0px,
+        34px -12px, 0px 0px, 34px 12px;
+    }
 }
+    
+    
