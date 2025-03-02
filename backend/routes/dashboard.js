@@ -122,7 +122,7 @@ router.get(`/deadlines/:username`, authorizeToken, async (req, res) => {
 });
 
 // Retrieve monthly summary for a user
-router.get(`/monthly_summary/:username`, authorizeToken, async (req, res) => {
+router.get(`/monthly-summary/:username`, authorizeToken, async (req, res) => {
     try {
         let selectQuery;
         let resultQuery;
@@ -220,7 +220,7 @@ router.get(`/monthly_summary/:username`, authorizeToken, async (req, res) => {
             totalIncomePerDay = resultQuery.map(transaction => {
                 return {
                     day: Number(transaction.day_of_month),
-                    total_expense_amount: Number(transaction.income_transaction_amount_for_the_day)
+                    total_income_amount: Number(transaction.income_transaction_amount_for_the_day)
                 }
             });
             Logger.log(`${usernameFromParameter} has income transactions recorded for this month!`);
@@ -240,13 +240,12 @@ router.get(`/monthly_summary/:username`, authorizeToken, async (req, res) => {
                 income_and_expense_pie: monthlyIncomeAndExpenseTotal,
                 expense_by_category: monthlyCategoryExpense,
                 top_three_expenses: topThreeExpense,
-                run_chart: {
-                    expenses_per_day: totalExpensePerDay,
-                    income_per_day: totalIncomePerDay,
-                    day_list: dayOfMonthList
-                } 
             },
-            
+            run_chart: {
+                expenses_per_day: totalExpensePerDay,
+                income_per_day: totalIncomePerDay,
+                day_list: dayOfMonthList
+            } 
         });
 
 
