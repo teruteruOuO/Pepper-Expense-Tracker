@@ -24,7 +24,7 @@
                     </textarea>
                 </li>
                 <li>
-                    <p>Total used amount: {{ currencySettings.sign }}{{ budgetInstanceInformation.amount.used.toFixed(2) }}</p>
+                    <p>Total used amount: {{ currencySettings.sign }}{{ budgetInstanceInformation.amount.used.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</p>
                 </li>
                 <li>
                     <label for="budget-limit-amount-update">Limit Amount: {{ currencySettings.sign }}</label>
