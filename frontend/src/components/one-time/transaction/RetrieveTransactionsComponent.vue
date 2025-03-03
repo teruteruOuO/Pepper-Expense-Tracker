@@ -126,9 +126,9 @@ const computedTransactions = computed(() => {
             transaction.name.toLowerCase().includes(searchTerm) || 
             (transaction.description?.toLowerCase() || '').includes(searchTerm) || // Handle optional description
             transaction.amount.toString().includes(searchTerm) ||
-            transaction.type.toString().includes(searchTerm) ||
+            transaction.type.toLowerCase().toString().includes(searchTerm) ||
             formattedDate.includes(searchTerm) || // Search in formatted deadline
-            transaction.category.toString().includes(searchTerm) ||
+            transaction.category.toLowerCase().includes(searchTerm) ||
             (transaction.budget?.toLowerCase() || '').includes(searchTerm) // Handle optional description
         );
     });
