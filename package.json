@@ -1,1 +1,1 @@
-{"scripts":{"backend":"cd backend && npm start","frontend":"cd frontend && npm run dev","backend-install":"cd backend && npm install","frontend-install":"cd frontend && npm install"},"dependencies":{"node-cron":"^3.0.3"}}
+{"scripts":{"backend":"cd backend && npm start","frontend":"cd frontend && npm run dev","backend-install":"cd backend && npm install","frontend-install":"cd frontend && npm install"}}
