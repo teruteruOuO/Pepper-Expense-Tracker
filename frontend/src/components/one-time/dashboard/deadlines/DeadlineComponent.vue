@@ -6,7 +6,7 @@
     </section>
 
     <section class="retrieve-fail" v-else-if="retrieveResourcesFail">
-        
+        <p>{{ feedbackFromBackend.message }}</p>
     </section>
 
     <section class="none" v-else-if="emptyResult">
@@ -52,10 +52,11 @@ const retrieveDeadline = async () => {
 
         // Retrieve the deadline summary
         console.log(response.data.message);
+        console.log(response.data.deadline_summary);
 
         // Don't continue if there are no deadline records
         const deadlineSummary = response.data.deadline_summary;
-        if (!deadlineSummary) {
+        if (!deadlineSummary || Object.keys(deadlineSummary).length === 0) {
             emptyResult.value = true;
         }
 
