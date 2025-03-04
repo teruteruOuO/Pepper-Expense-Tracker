@@ -42,7 +42,7 @@
                     <td>{{ budget.name }}</td>
                     <td>{{ budget.description }}</td>
                     <td>{{ currencySign }}{{ budget.amount.used.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-                    <td><meter :value="budget.progress" min="0" max="100" low="25" high="75" optimum="0">{{ budget.progress }}</meter></td>
+                    <td><meter :value="budget.progress" min="0" max="100" low="25" high="75" optimum="0">{{ budget.progress }}</meter>{{ budget.progress.toFixed(2) }}%</td>
                     <td>{{ currencySign }}{{ budget.amount.limit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
                     <td>{{ budget.date.start }}</td>
                     <td>{{ budget.date.end }}</td>

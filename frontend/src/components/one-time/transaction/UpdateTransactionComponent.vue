@@ -33,7 +33,6 @@
                 <li>
                     <label for="transaction-type-update">Type: </label>
                     <select name="transaction-type-update" id="transaction-type-update" v-model="transactionInstanceInformation.transaction.type" required>
-                        <option value=""></option>
                         <option value="expense">Expense</option>
                         <option value="income">Income</option>
                     </select>

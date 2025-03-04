@@ -30,7 +30,6 @@
                 <li>
                     <label for="transaction-type-add">Type: </label>
                     <select name="transaction-type-add" id="transaction-type-add" v-model="userTransactionInput.selectedFromList.type" required>
-                        <option value=""></option>
                         <option value="expense">Expense</option>
                         <option value="income">Income</option>
                     </select>

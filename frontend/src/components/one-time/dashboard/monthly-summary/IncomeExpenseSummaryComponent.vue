@@ -5,14 +5,14 @@
         <Pie :data="data" :options="options" />
     </div>
     <p>
-        Your 
+        Your net
         <span v-if="revenue >= 0" class="positive-revenue">
-            net
+            revenue
         </span> 
         <span v-else class="negative-revenue">
             loss
         </span>
-        revenue for this month is: 
+        for this month is: 
         <span :class="{ 'negative-revenue': revenue < 0, 'positive-revenue': revenue >= 0 }">
             {{summary.preferredCurrency.sign}}{{ Math.abs(revenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
         </span>
