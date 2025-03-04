@@ -1,10 +1,5 @@
 <template>
 <section class="retrieve-savings-component">
-    <h2>Retrieve Savings Component</h2>
-    <section class="add-savings-link">
-        <RouterLink :to="{ name: 'add-savings' }">Add Savings</RouterLink>
-    </section>
-
     <section class="loader" v-if="isLoading">
     </section>
 
@@ -12,45 +7,86 @@
         <p>{{ feedbackFromBackend }}</p>
     </section>
 
-    <section class="none" v-else-if="!userSavings">
-        <p>You do not have any savings yet. Add one!</p>
-    </section>
-
-    <section class="success" v-else>
-        <section class="search-engines">
-            <ul>
-                <li>
-                    <label for="search-saving">Search: </label>
-                    <input type="text" name="search-saving" id="search-saving" v-model="searchSavings">
-                </li>
-            </ul>
+    <!-- Retrieve Success -->
+    <section class="retrieve-success" v-else>
+        <section class="add-savings-link">
+            <RouterLink :to="{ name: 'add-savings' }">Add Savings</RouterLink>
         </section>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Current Amount</th>
-                    <th>Target Amount</th>
-                    <th>Progress</th>
-                    <th>Deadline</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="saving in computedSavings" :key="saving.sequence" @click="enterSaving(saving.sequence)">
-                    <td>{{ saving.name }}</td>
-                    <td>{{ saving.description }}</td>
-                    <td>{{ currencySign }}{{ saving.current_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-                    <td>{{ currencySign }}{{ saving.target_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-                    <td><progress :id="`saving-progress-${saving.sequence}`" max="100" :value="saving.progress">{{ saving.progress }}</progress> {{ saving.progress.toFixed(2) }}%</td>
-                    <td>{{ saving.deadline }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
 
-    
+        <section class="none" v-if="!userSavings">
+            <p>You do not have any savings yet. Add one!</p>
+        </section>
+
+        <section class="phone" v-else-if="verifyTable.isPhone">
+            <section class="search-engines">
+                <ul>
+                    <li>
+                        <label for="search-saving">Search: </label>
+                        <input type="text" name="search-saving" id="search-saving" v-model="searchSavings">
+                    </li>
+                </ul>
+            </section>
+
+            <section v-for="saving in computedSavings"
+            :key="saving.sequence" 
+            @click="enterSaving(saving.sequence)"
+            :id="`saving-id-${saving.sequence}`"
+            class="savings-entity" >
+                <p>
+                    <b>Name:</b> 
+                    {{ saving.name }}
+                </p>
+                <p>
+                    <b>Amount Ratio:</b>
+                    {{ currencySign }}{{ saving.current_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} 
+                    /
+                    {{ currencySign }}{{ saving.target_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                </p>
+                <p>
+                    <b>Deadline:</b>
+                    {{ saving.deadline }}
+                </p>
+                <p>
+                    <b>Progress:</b>
+                    <progress :id="`saving-progress-${saving.sequence}`" max="100" :value="saving.progress">{{ saving.progress }}</progress> {{ saving.progress.toFixed(2) }}%
+                </p>
+            </section>
+        </section>
+
+        <section class="computer" v-else>
+            <section class="search-engines">
+                <ul>
+                    <li>
+                        <label for="search-saving">Search: </label>
+                        <input type="text" name="search-saving" id="search-saving" v-model="searchSavings">
+                    </li>
+                </ul>
+            </section>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Current Amount</th>
+                        <th>Target Amount</th>
+                        <th>Progress</th>
+                        <th>Deadline</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="saving in computedSavings" :key="saving.sequence" @click="enterSaving(saving.sequence)">
+                        <td>{{ saving.name }}</td>
+                        <td>{{ saving.description }}</td>
+                        <td>{{ currencySign }}{{ saving.current_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+                        <td>{{ currencySign }}{{ saving.target_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+                        <td><progress :id="`saving-progress-${saving.sequence}`" max="100" :value="saving.progress">{{ saving.progress }}</progress> {{ saving.progress.toFixed(2) }}%</td>
+                        <td>{{ saving.deadline }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </section>
 </section>
 </template>
 
@@ -59,11 +95,13 @@
 import axios from 'axios';
 import { ref, computed, onMounted } from 'vue';
 import { useUserStore } from '@/stores/user';
+import { useWindowStore } from '@/stores/table-phone';
 import { RouterLink } from 'vue-router';
 import { useRouter } from 'vue-router';
 
 // Initialize variables
 const user = useUserStore();
+const verifyTable = useWindowStore();
 const router = useRouter();
 const isLoading = ref(false);
 const userSavings = ref([]);
@@ -126,9 +164,7 @@ const enterSaving = (sequence) => {
 // Automatically trigger retrieve savings
 onMounted(async () => {
     await retrieveSavings();
-
 });
-
 </script>
 
 
@@ -138,8 +174,35 @@ table, th, tr, td {
     text-align: left;
 }
 
-tbody tr:hover {
+tbody tr:hover, .savings-entity:hover {
     cursor: pointer;
     background-color: pink;
 }
+
+/* Phone table style */
+.savings-entity {
+    /* Flex parent */
+    display: flex;
+    flex-wrap: wrap;
+
+    border: 1px solid black;
+    margin-block-end: 10px;
+}
+
+.savings-entity:last-of-type {
+    margin-block-end: 0px;
+}
+
+
+.savings-entity > * {
+    /* Flex child */
+    flex-grow: 1;
+    border: 1px solid black;
+
+    /* Center Text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 </style>

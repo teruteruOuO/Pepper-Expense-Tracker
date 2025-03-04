@@ -24,7 +24,7 @@ import MonthlySummaryComponent from '@/components/one-time/dashboard/monthly-sum
 import DeadlineComponent from '@/components/one-time/dashboard/deadlines/DeadlineComponent.vue';
 import { shallowRef  } from 'vue';
 
-const currentComponent = shallowRef (MonthlySummaryComponent);
+const currentComponent = shallowRef(MonthlySummaryComponent);
 const switchComponent = (component) => {
     if (component == MonthlySummaryComponent) {
         currentComponent.value = MonthlySummaryComponent

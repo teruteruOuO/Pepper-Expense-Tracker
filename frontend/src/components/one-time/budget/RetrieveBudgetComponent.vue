@@ -1,9 +1,5 @@
 <template>
 <section class="retrieve-budget-component">
-    <section class="add-savings-link">
-        <RouterLink :to="{ name: 'add-budget' }">Add Budget</RouterLink>
-    </section>
-
     <section class="loader" v-if="isLoading">
     </section>
 
@@ -12,10 +8,16 @@
     </section>
 
     <section class="none" v-else-if="!userBudgets">
+        <section class="add-savings-link">
+            <RouterLink :to="{ name: 'add-budget' }">Add Budget</RouterLink>
+        </section>
         <p>You do not have any budgets yet. Add one!</p>
     </section>
 
     <section class="success" v-else>
+        <section class="add-savings-link">
+            <RouterLink :to="{ name: 'add-budget' }">Add Budget</RouterLink>
+        </section>
         <section class="search-engines">
             <ul>
                 <li>

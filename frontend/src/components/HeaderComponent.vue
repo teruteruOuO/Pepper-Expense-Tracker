@@ -1,6 +1,6 @@
 <template>
 <header class="header-component">
-    <h1>This is the header</h1>
+    <h1>Pepper's Expense Tracker</h1>
     <nav>
         <ul v-if="isLoggedIn">
             <li><RouterLink :to="{ name: 'dashboard' }">Dashboard</RouterLink></li>
@@ -33,17 +33,98 @@ const isLoggedIn = computed(() => {
 </script>
 
 <style scoped>
+/* Phone Vertical*/
+h1 {
+    text-align: center;
+}
+
+nav > ul {
+    /* flex parent*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    row-gap: 5px;
+    column-gap: 5px;
+    flex-wrap: wrap;
+
+    background-color: red;
+    font-size: 2rem;
+}
+
+/* Making the child element take over Li's document precendence in the DOM */
+li {
+    display: contents;  
+}
+
+/* Link styles */
+a {
+    background-color: pink;
+    border: 1px solid black;
+    font-size: 1.5rem;
+    flex-grow: 1;
+    
+    /* Center Text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+
+    /* flex item*/
+    flex-grow: 1;
+}
+
+a:link, a:visited {
+    color: black;
+}
+
+a:focus, a:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
+}
+
+a:active {
+    background-color: rgb(255, 240, 243);
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+}
+
+
 /* Phone Horizontal */
 @media screen and (min-width: 576px) {
-    header {
-        grid-template-areas: 
-        "h1 nav";
-    }
+
 }
 
 /* Laptop */
 @media screen and (min-width: 768px) {
+    header {
+        /* Flex parent */
+        display: flex;
+        flex-direction: row;
+        
+        background-color: green;
+    }
 
+    /* Header children */
+    header > * {
+        flex-grow: 1;
+    }
+
+    h1  {
+        background-color: pink;
+    }
+
+    ul {
+        block-size: 100%;
+    }
+
+    a {
+        block-size: 100%;
+        /* Center Text */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 }
 
 /* Desktop */
