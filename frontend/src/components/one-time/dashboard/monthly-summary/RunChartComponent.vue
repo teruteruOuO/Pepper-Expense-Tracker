@@ -15,7 +15,8 @@ import { monthlySummaryStore } from '@/stores/monthly-summary';
 import { ref, reactive, computed, onMounted } from 'vue';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
 import { Line } from 'vue-chartjs'
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.defaults.font.family = 'Bubblegum Sans'; 
 
 const summary = monthlySummaryStore();
 const transactionExpense = ref([]);

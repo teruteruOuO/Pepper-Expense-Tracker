@@ -1,9 +1,5 @@
 <template>
 <section class="retrieve-transaction-component">
-    <section class="add-transaction-link">
-        <RouterLink :to="{ name: 'add-transaction' }">Add Transaction</RouterLink>
-    </section>
-
     <section class="loader" v-if="isLoading">
     </section>
 
@@ -13,9 +9,15 @@
 
     <section class="none" v-else-if="!userTransactions">
         <p>You do not have any transactions yet. Add one!</p>
+        <section class="add-transaction-link">
+            <RouterLink :to="{ name: 'add-transaction' }">Add Transaction</RouterLink>
+        </section>
     </section>
 
     <section class="success" v-else>
+        <section class="add-transaction-link">
+            <RouterLink :to="{ name: 'add-transaction' }">Add Transaction</RouterLink>
+        </section>
         <section class="search-engines">
             <ul>
                 <li>
