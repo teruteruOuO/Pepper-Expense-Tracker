@@ -70,7 +70,7 @@ const options = {
             },
             ticks: {
                 callback: function(value) {
-                    return currency.sign + value;
+                    return currency.sign + value.toLocaleString('en-US', { maximumFractionDigits: 0 });
                 }
             }
         }

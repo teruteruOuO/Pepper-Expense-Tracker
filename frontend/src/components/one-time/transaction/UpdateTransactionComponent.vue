@@ -45,7 +45,7 @@
                 <li>
                     <label for="transaction-category-add">Category: </label>
                     <select name="transaction-category-update" id="transaction-category-update" v-model="transactionInstanceInformation.category.id" required>
-                        <option v-for="category in categoryList" :key="category.category_id" :value="category.category_id">
+                        <option v-for="category in filteredCategories" :key="category.category_id" :value="category.category_id">
                             {{ category.category_name }}
                         </option>
                     </select>
@@ -158,6 +158,13 @@ const chosenBudget = computed(() => {
     } else {
         return transactionInstanceInformation.budget.id
     }
+});
+
+// If user picks type income; then show income categories; otherwise show expense
+const filteredCategories = computed(() => {
+    return categoryList.value
+        ? categoryList.value.filter(category => category.category_type === transactionInstanceInformation.transaction.type)
+        : [];
 });
 
 // Retrieve the transaction instance's information of the user

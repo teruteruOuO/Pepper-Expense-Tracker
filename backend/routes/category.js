@@ -14,7 +14,7 @@ router.get(`/`, authorizeToken, async(req, res) => {
         Logger.log('Initalizing /api/category ROUTE.');
 
         // Retrieve all categories
-        selectQuery = "SELECT category_id, category_name FROM category;";
+        selectQuery = "SELECT category_id, category_name, category_type FROM category;";
         Logger.log(selectQuery);
         resultQuery = await executeReadQuery(selectQuery);
         Logger.log(resultQuery);
