@@ -47,7 +47,7 @@
                     <td>{{ transaction.name }}</td>
                     <td>{{ transaction.description }}</td>
                     <td>{{ currencySign }}{{ transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-                    <td>{{ transaction.type }}</td>
+                    <td>{{ transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) }}</td>
                     <td>{{ transaction.date }}</td>
                     <td>{{ transaction.category }}</td>
                     <td>{{ transaction.budget }}</td>

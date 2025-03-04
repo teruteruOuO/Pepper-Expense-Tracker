@@ -51,7 +51,7 @@
                     </select>
                 </li>
                 <!-- Appear only if a user has at least one existing budget -->
-                <li v-if="budgetList">
+                <li v-if="budgetList && transactionInstanceInformation.transaction.type === 'expense'">
                     <label for="transaction-budget-update">Budget: </label>
                     <select name="transaction-budget-update" id="transaction-budget-update" v-model="transactionInstanceInformation.budget.id">
                         <option :value=null>None</option>
@@ -151,6 +151,15 @@ const description = computed(() => {
     }
 });
 
+// If type is income, make budget have a value of null
+const chosenBudget = computed(() => {
+    if (transactionInstanceInformation.transaction.type === 'income') {
+        return null
+    } else {
+        return transactionInstanceInformation.budget.id
+    }
+});
+
 // Retrieve the transaction instance's information of the user
 const retrieveTransactionInstance = async () => {
     isLoadingPage.value = true;
@@ -226,7 +235,7 @@ const updateTransactionInstance = async () => {
                 date: transactionInstanceInformation.transaction.date,
             },
             category_id: transactionInstanceInformation.category.id,
-            budget_id: transactionInstanceInformation.budget.id,
+            budget_id: chosenBudget.value,
         }
         const response = await axios.put(`/api/transaction/${user.userInformation.username}/${transactionInstanceInformation.transaction.sequence}`, body);
         console.log(response.data.message);
