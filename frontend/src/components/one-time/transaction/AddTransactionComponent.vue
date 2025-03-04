@@ -48,7 +48,7 @@
                     </select>
                 </li>
                 <!-- Appear only if a user has at least one existing budget -->
-                <li v-if="budgetList">
+                <li v-if="budgetList && userTransactionInput.selectedFromList.type === 'expense'">
                     <label for="transaction-budget-add">Budget: </label>
                     <select name="transaction-budget-add" id="transaction-budget-add" v-model="userTransactionInput.selectedFromList.budget">
                         <option :value=null>None</option>
@@ -128,6 +128,15 @@ const description = computed(() => {
     }
 });
 
+// If type is income, make budget have a value of null
+const chosenBudget = computed(() => {
+    if (userTransactionInput.selectedFromList.type === 'income') {
+        return null
+    } else {
+        return userTransactionInput.selectedFromList.budget
+    }
+});
+
 // Retrieve all categories, user's preferred currency and their budgets
 const retrieveResources = async () => {
     isLoadingGetCurrencyAndBudgets.value = true;
@@ -172,7 +181,7 @@ const addTransaction = async () => {
             type: userTransactionInput.selectedFromList.type,
             date: userTransactionInput.transaction.date,
             category: userTransactionInput.selectedFromList.category,
-            budget: userTransactionInput.selectedFromList.budget
+            budget: chosenBudget.value
         }
         const response = await axios.post(`/api/transaction/${user.userInformation.username}`, body);
         console.log(response.data.message);
