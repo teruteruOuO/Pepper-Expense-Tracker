@@ -14,7 +14,7 @@
         </span>
         revenue for this month is: 
         <span :class="{ 'negative-revenue': revenue < 0, 'positive-revenue': revenue >= 0 }">
-            {{summary.preferredCurrency.sign}}{{ Math.abs(revenue.toFixed(2)) }}
+            {{summary.preferredCurrency.sign}}{{ Math.abs(revenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
         </span>
     </p>
 </section>

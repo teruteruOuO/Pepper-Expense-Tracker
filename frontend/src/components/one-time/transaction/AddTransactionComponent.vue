@@ -40,9 +40,9 @@
                     <input type="datetime-local" name="transaction-date-add" id="transaction-date-add" required v-model="userTransactionInput.transaction.date">
                 </li>
                 <li>
-                    <label for="transaction-category-add">Category: </label>
+                    <label for="transaction-category-add">Category (Pick a type first): </label>
                     <select name="transaction-category-add" id="transaction-category-add" v-model="userTransactionInput.selectedFromList.category" required>
-                        <option v-for="category in categoryList" :key="category.category_id" :value="category.category_id">
+                        <option v-for="category in filteredCategories" :key="category.category_id" :value="category.category_id">
                             {{ category.category_name }}
                         </option>
                     </select>
@@ -135,6 +135,13 @@ const chosenBudget = computed(() => {
     } else {
         return userTransactionInput.selectedFromList.budget
     }
+});
+
+// If user picks type income; then show income categories; otherwise show expense
+const filteredCategories = computed(() => {
+    return categoryList.value
+        ? categoryList.value.filter(category => category.category_type === userTransactionInput.selectedFromList.type)
+        : [];
 });
 
 // Retrieve all categories, user's preferred currency and their budgets
