@@ -17,7 +17,7 @@
             <p>You do not have any savings yet. Add one!</p>
         </section>
 
-        <section class="phone" v-else-if="verifyTable.isPhone">
+        <section class="phone" v-else-if="isPhone">
             <section class="search-engines">
                 <ul>
                     <li>
@@ -33,21 +33,21 @@
             :id="`saving-id-${saving.sequence}`"
             class="savings-entity" >
                 <p>
-                    <b>Name:</b> 
+                    <b>Name: </b> 
                     {{ saving.name }}
                 </p>
                 <p>
-                    <b>Amount Ratio:</b>
+                    <b>Amount Ratio: </b>
                     {{ currencySign }}{{ saving.current_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} 
                     /
                     {{ currencySign }}{{ saving.target_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
                 </p>
                 <p>
-                    <b>Deadline:</b>
+                    <b>Deadline: </b>
                     {{ saving.deadline }}
                 </p>
                 <p>
-                    <b>Progress:</b>
+                    <b>Progress: </b>
                     <progress :id="`saving-progress-${saving.sequence}`" max="100" :value="saving.progress">{{ saving.progress }}</progress> {{ saving.progress.toFixed(2) }}%
                 </p>
             </section>
@@ -93,15 +93,13 @@
 
 <script setup>
 import axios from 'axios';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useUserStore } from '@/stores/user';
-import { useWindowStore } from '@/stores/table-phone';
 import { RouterLink } from 'vue-router';
 import { useRouter } from 'vue-router';
 
 // Initialize variables
 const user = useUserStore();
-const verifyTable = useWindowStore();
 const router = useRouter();
 const isLoading = ref(false);
 const userSavings = ref([]);
@@ -109,6 +107,15 @@ const feedbackFromBackend = ref("");
 const retrieveResourcesFail = ref(false);
 const currencySign = ref('');
 const searchSavings = ref('');
+
+// determine table orientation based on screen width
+const windowWidth = ref(window.innerWidth);
+const updateWidth = () => {
+    windowWidth.value = window.innerWidth;
+};
+// Computed property for visibility based on width range
+const isPhone = computed(() => windowWidth.value <= 576);
+
 
 // Retrieve the all of the user's savings
 const retrieveSavings = async () => {
@@ -164,7 +171,10 @@ const enterSaving = (sequence) => {
 // Automatically trigger retrieve savings
 onMounted(async () => {
     await retrieveSavings();
+    window.addEventListener('resize', updateWidth);
 });
+
+onUnmounted(() => window.removeEventListener('resize', updateWidth));
 </script>
 
 
