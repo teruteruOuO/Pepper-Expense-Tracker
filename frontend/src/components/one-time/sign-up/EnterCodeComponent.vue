@@ -1,10 +1,9 @@
 <template>
 <section class="enter-code-component">
-    <h2>Enter Code Component</h2>
+    <h1><label for="code">Enter the Correct Code</label></h1>
     <form @submit.prevent="validateCode()">
         <ul>
             <li>
-                <label for="code">Code: </label>
                 <input 
                 type="text" 
                 name="code" 
@@ -12,7 +11,8 @@
                 required 
                 minlength="6" 
                 maxlength="6"
-                v-model="codeFromUser">
+                v-model="codeFromUser"
+                placeholder="Code">
             </li>
             <li>
                 <button type="submit">
@@ -29,7 +29,7 @@
         </ul>
     </form>
 
-    <section :class="{ 'feedback-fail': feedbackFromBackendStyle === 'fail',  'feedback-success': feedbackFromBackendStyle === 'success'}">
+    <section ref="feedbackSection" class="feedback" :class="{ 'fail': feedbackFromBackendStyle === 'fail',  'success': feedbackFromBackendStyle === 'success'}">
         <p>{{ feedbackFromBackend }}</p>
     </section>
 </section>
@@ -39,7 +39,7 @@
 <script setup>
 import axios from 'axios';
 import { useEmailSignup } from '@/stores/email-signup';
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
 
 // Initialize variables
 const isLoadingResendCode = ref(false);
@@ -48,6 +48,7 @@ const emailInformation = useEmailSignup();
 const feedbackFromBackend = ref("");
 const feedbackFromBackendStyle = ref("");
 const codeFromUser = ref("");
+const feedbackSection = ref(null); 
 
 // Resend a new code to the user's email
 const resendCode = async () => {
@@ -68,6 +69,9 @@ const resendCode = async () => {
 
     } finally {
         isLoadingResendCode.value = false;
+
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 }
 
@@ -90,7 +94,9 @@ const validateCode = async () => {
         console.error(err);
         feedbackFromBackend.value = err.response.data.message;
         feedbackFromBackendStyle.value = 'fail';
-        
+
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
 
     } finally {
         isLoadingEnterCode.value = false;
@@ -100,22 +106,102 @@ const validateCode = async () => {
 
 
 <style scoped>
-button {
-    border-radius: 5px;
-    border: 1px solid black;
-    background-color: pink;
+.enter-code-component > * {
+    margin-block-end: 50px;
+    
+    /* Center */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-button:active, .is-loading {
-    cursor: not-allowed;
-    background-color: red;
+h1 {
+    text-align: center;
 }
 
-.feedback-fail {
+h1 > label {
+    font-size: 2rem;
+}
+
+ul > li {
+    margin-block-end: 50px;
+}
+
+li:last-of-type {
+    margin-block-end: 0px;
+}
+
+.feedback {
+    margin-block-end: 0px;
+}
+
+.fail {
     color: red;
 }
 
-.feedback-success {
+.success {
     color: green;
+}
+
+button {
+    border: 1px solid black;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
+}
+
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
+}
+
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input {
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+/* Phone Horizontal */
+@media screen and (min-width: 576px) {
+    .enter-code-component {
+        margin-block-start: 30px;
+    }
+
+    .enter-code-component > * {
+        margin-block-end: 30px;
+    }
+
+    ul > li {
+        margin-block-end: 30px;
+    }
+
+    .feedback {
+        margin-block-end: 0px;
+    }
+}
+
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+    .enter-code-component > * {
+        margin-block-end: 40px;
+    }
+
+    ul > li {
+        margin-block-end: 40px;
+    }
+
+    .feedback {
+        margin-block-end: 0px;
+    }
 }
 </style>

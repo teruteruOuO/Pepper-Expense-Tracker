@@ -137,10 +137,11 @@ button:focus, button:hover {
     border-color: rgb(59, 59, 59);
 }
 
-button:active {
+button:active, .is-loading {
     background-color: rgb(255, 240, 243);
     color: rgb(102, 101, 101);
     border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
 }
 
 a:link, a:visited {
@@ -151,9 +152,8 @@ a:focus, a:hover {
     color: pink;
 }
 
-a:active, .is-loading {
+a:active {
     color: pink;
-    cursor: not-allowed;
 }
 
 /* style for backend feedback variables */
@@ -173,6 +173,27 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+/* Phone Horizontal */
+@media screen and (min-width: 576px) {
+    .login-form-component {
+        margin-block-start: 30px;
+    }
+
+    .login-form-component > * {
+        margin-block-end: 30px;
+
+    }
+
+    ul > li {
+        margin-block-end: 30px;
+    }
+
+
+    .sign-up-link, li:nth-of-type(2){
+        margin-block-end: 0px;
+    }
 }
 
 /* Laptop and above*/

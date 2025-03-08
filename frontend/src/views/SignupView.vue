@@ -1,6 +1,5 @@
 <template>
 <main class="signup-view">
-    <h1>Sign up Page</h1>
     <VerifyEmailComponent v-if="signupInformation.emailStatus.components.verify_email"/>
     <EnterCodeComponent v-else-if="signupInformation.emailStatus.components.enter_code"/>
     <SignupFormComponent v-else-if="signupInformation.emailStatus.components.sign_up"/>
@@ -22,8 +21,9 @@ const signupInformation = useEmailSignup();
 </script>
 
 <style scoped>
-main > section {
-    border: 1px solid red;
-    border-radius: 5px;
+main {
+    /* Center the component */
+    justify-content: center;
+    align-content: center;
 }
 </style>
