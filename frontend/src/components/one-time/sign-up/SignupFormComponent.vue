@@ -1,6 +1,5 @@
 <template>
 <section class="signup-form-component">
-    <h2>Sign Up Form</h2>
     <section class="loader" v-if="isLoadingCurrencyOptions">
     </section>
 
@@ -8,12 +7,13 @@
         <p>{{ feedbackFromBackend }}</p>
     </section>
 
-    <section class="success" v-else>
+    <section class="retrieve-success" v-else>
+        <h1>Enter your Information</h1>
         <form @submit.prevent="signupUser()">
             <ul>
                 <li>
                     <label for="first">First Name: </label>
-                    <input type="text" name="first" id="first" required v-model="userSignupInformation.name.first">
+                    <input type="text" name="first" id="first" required v-model="userSignupInformation.name.first" placeholder="Required">
                 </li>
                 <li>
                     <label for="initial">Middle Name: </label>
@@ -21,15 +21,15 @@
                 </li>
                 <li>
                     <label for="last">Last Name: </label>
-                    <input type="text" name="last" id="last" required v-model="userSignupInformation.name.last">
+                    <input type="text" name="last" id="last" required v-model="userSignupInformation.name.last" placeholder="Required">
                 </li>
                 <li>
                     <label for="address">Address Name: </label>
-                    <input type="text" name="address" id="address" required v-model="userSignupInformation.location.address">
+                    <input type="text" name="address" id="address" required v-model="userSignupInformation.location.address" placeholder="Required">
                 </li>
                 <li>
                     <label for="city">City: </label>
-                    <input type="text" name="city" id="city" required v-model="userSignupInformation.location.city">
+                    <input type="text" name="city" id="city" required v-model="userSignupInformation.location.city" placeholder="Required"> 
                 </li>
                 <li>
                     <label for="state">State: </label>
@@ -40,19 +40,19 @@
                 </li>
                 <li>
                     <label for="zip">Zip: </label>
-                    <input type="text" name="zip" id="zip" v-model="userSignupInformation.location.zip" @input="validateZip" pattern="^\d{5}$" maxlength="5" required>
+                    <input type="text" name="zip" id="zip" v-model="userSignupInformation.location.zip" @input="validateZip" pattern="^\d{5}$" maxlength="5" required placeholder="Required">
                 </li>
                 <li>
                     <label for="username">Username: </label>
-                    <input type="text" name="username" id="username" required v-model="userSignupInformation.credentials.username">
+                    <input type="text" name="username" id="username" required v-model="userSignupInformation.credentials.username" placeholder="Required">
                 </li>
                 <li>
                     <label for="password">Password: </label>
-                    <input type="password" name="password" id="password" required v-model="userSignupInformation.credentials.password">
+                    <input type="password" name="password" id="password" required v-model="userSignupInformation.credentials.password" placeholder="Required">
                 </li>
                 <li>
                     <label for="confirm-password">Confirm Password: </label>
-                    <input type="password" name="confirm-password" id="confirm-password" required v-model="userSignupInformation.credentials.confirm_password">
+                    <input type="password" name="confirm-password" id="confirm-password" required v-model="userSignupInformation.credentials.confirm_password" placeholder="Required">
                 </li>
                 <li>
                     <label for="currency_code">Preferred Currency: </label>
@@ -72,10 +72,10 @@
             </ul>
         </form>
 
-        <section class="feedback">
+        <section class="feedback fail">
             <p>{{ confirmPasswordFeedback }}</p>
             <p>{{ passwordRegExFeedback }}</p>
-            <p :class="{ 'backend-feedback-success': feedbackFromBackendSuccess, 'feedback': !feedbackFromBackendSuccess }">{{ feedbackFromBackend }}</p>
+            <p ref="feedbackSection" class='feedback' :class="{ 'success': feedbackFromBackendSuccess, 'fail': !feedbackFromBackendSuccess }">{{ feedbackFromBackend }}</p>
         </section>
     </section>
     
@@ -85,7 +85,7 @@
 
 <script setup>
 import axios from 'axios';
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, nextTick } from 'vue';
 import { useEmailSignup } from '@/stores/email-signup';
 import { useRouter } from 'vue-router';
 import { statesList } from '@/assets/misc-scripts/state-list';
@@ -98,6 +98,7 @@ const isLoadingSignup = ref(false);
 const feedbackFromBackend = ref("");
 const feedbackFromBackendSuccess = ref(false);
 const retrieveResourcesFail = ref(false);
+const feedbackSection = ref(null); 
 
 const currencyOptions = ref([]);
 const selectedCurrency = ref("USD");
@@ -232,6 +233,9 @@ const signupUser = async () => {
         feedbackFromBackend.value = `* ${err.response.data.message}`;
         isLoadingSignup.value = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally { 
         isLoadingSignup.value = false;
     }
@@ -270,36 +274,145 @@ onMounted(async () => {
 
 
 <style scoped>
-.signup-form-component {
-    border: 1px solid red;
-    border-radius: 5px;
+.signup-form-component > * {
+    margin-block-end: 50px;
+    
+    /* Center */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.signup-form-component h1 {
+    text-align: center;
+    margin-block-start: 20px;
+    margin-block-end: 20px;
+}
+
+ul {
+    /* Center */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+ul > li {
+    margin-block-end: 20px;
+}
+
+p {
+    margin-block-end: 20px;
+    text-align: center;
+}
+
+p:last-of-type {
+    margin-block-end: 0px;
 }
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
 }
 
-/* style for backend feedback variables */
-.feedback {
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+label {
+    display: block;
+}
+
+input, select {
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+.fail {
     color: red;
 }
 
-.backend-feedback-success {
+.success {
     color: green;
 }
 
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
+/* Phone Horizontal */
+@media screen and (min-width: 576px) {
+    .signup-form-component h1 {
+        margin-block-start: 30px;
+        margin-block-end: 30px;
+    }
+
+    ul {
+        /* Center */
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    li:last-of-type {
+        flex: 0 0 100%; /* Forces the button to take a full row */
+        display: flex;
+        justify-content: center; /* Centers the button */
+        order: 1; /* Ensures it appears last */
+    }
+
+    p:last-of-type {
+        margin-block-end: 0px;
+    }
+
+    /* Button styles */
+    button {
+        max-inline-size: 312px; /* Prevents it from stretching too wide */
+        inline-size: 100%;
+    }
+}
+
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+
+
+    ul {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Creates 2 equal columns */
+        gap: 20px; /* Adds spacing between columns */
+        justify-content: center;
+        align-items: start;
+    }
+
+    li {
+        flex: none; /* Resets flex styles */
+        width: 100%;
+    }
+
+    /* Ensure the button takes the full width and stays below */
+    li:last-of-type {
+        grid-column: span 2;
+        display: flex;
+        justify-content: center;
+    }
+
+    button {
+        max-inline-size: 312px; /* Keeps button from stretching */
+        inline-size: 100%;
+    }
 }
 
 </style>

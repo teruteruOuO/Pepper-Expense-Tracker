@@ -1,16 +1,19 @@
 <template>
 <section class="verify-email">
-    <h2>Verify Email</h2>
+    <h1><label for="email">Enter your Email</label></h1>
     <form @submit.prevent="verifyEmail">
         <ul>
             <li>
-                <label for="email">Email: </label>
                 <input 
                 type="email"
                 name="email"
                 id="email"
                 required
-                v-model="email">
+                v-model="email"
+                placeholder="Email">
+            </li>
+            <li class="feedback">
+                {{ feedbackFromBackend }}
             </li>
             <li>
                 <button type="submit">
@@ -20,10 +23,6 @@
             </li>
         </ul>
     </form>
-
-    <section class="feedback">
-        <p>{{ feedbackFromBackend }}</p>
-    </section>
 </section>
 </template>
 
@@ -73,18 +72,100 @@ const verifyEmail = async () => {
 
 
 <style scoped>
-button {
-    border-radius: 5px;
-    border: 1px solid black;
-    background-color: pink;
+.verify-email > * {
+    margin-block-end: 50px;
+    
+    /* Center */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-button:active, .is-loading {
-    cursor: not-allowed;
-    background-color: red;
+h1 > label {
+    font-size: 2rem;
+}
+
+.verify-email:last-child {
+    margin-block-end: 0px;
+}
+
+ul > li {
+    margin-block-end: 50px;
+}
+
+li:first-of-type, li:last-of-type {
+    margin-block-end: 0px;
 }
 
 .feedback {
     color: red;
+}
+
+button {
+    border: 1px solid black;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
+}
+
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
+}
+
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input {
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+/* Phone Horizontal */
+@media screen and (min-width: 576px) {
+    .verify-email {
+        margin-block-start: 30px;
+    }
+
+    .verify-email > * {
+        margin-block-end: 30px;
+        
+    }
+
+    .verify-email:last-child {
+        margin-block-end: 0px;
+    }
+
+    ul > li {
+        margin-block-end: 30px;
+    }
+}
+
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+    .verify-email {
+        margin-block-start: 0px;
+    }
+
+    .verify-email > * {
+        margin-block-end: 50px;
+        
+    }
+
+    .verify-email:last-child {
+        margin-block-end: 0px;
+    }
+
+    ul > li {
+        margin-block-end: 50px;
+    }
 }
 </style>
