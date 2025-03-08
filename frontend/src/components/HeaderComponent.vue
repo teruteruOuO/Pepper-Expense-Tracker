@@ -34,6 +34,10 @@ const isLoggedIn = computed(() => {
 
 <style scoped>
 /* Phone Vertical*/
+header {
+    background-color: #D9D9D9;
+}
+
 h1 {
     text-align: center;
 }
@@ -47,7 +51,6 @@ nav > ul {
     column-gap: 5px;
     flex-wrap: wrap;
 
-    background-color: red;
     font-size: 2rem;
 }
 
@@ -58,10 +61,11 @@ li {
 
 /* Link styles */
 a {
-    background-color: pink;
+    background-color: black;
     border: 1px solid black;
+    border-radius: 5px;
     font-size: 1.5rem;
-    flex-grow: 1;
+    color: white;
     
     /* Center Text */
     display: flex;
@@ -74,7 +78,7 @@ a {
 }
 
 a:link, a:visited {
-    color: black;
+    color: white;
 }
 
 a:focus, a:hover {
@@ -101,17 +105,11 @@ a:active {
         /* Flex parent */
         display: flex;
         flex-direction: row;
-        
-        background-color: green;
     }
 
     /* Header children */
     header > * {
         flex-grow: 1;
-    }
-
-    h1  {
-        background-color: pink;
     }
 
     ul {

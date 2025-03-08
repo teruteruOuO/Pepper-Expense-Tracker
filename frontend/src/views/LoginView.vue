@@ -1,8 +1,6 @@
 <template>
 <main class="login-view">
-    <h1>Login View</h1>
     <LoginFormComponent />
-
 </main>
 </template>
 
@@ -11,5 +9,9 @@ import LoginFormComponent from '@/components/one-time/login/LoginFormComponent.v
 </script>
 
 <style scoped>
-
+main {
+    /* Center the component */
+    justify-content: center;
+    align-content: center;
+}
 </style>

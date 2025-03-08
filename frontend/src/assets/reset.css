@@ -18,9 +18,15 @@ h4 {font-size: 1rem;}
 h5 {font-size: 0.875rem;}
 h6 {font-size: 0.75rem;}
 
-body > * {
-    border: 1px solid black;
-    border-radius: 5px;
+body {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    height: 100vh; /* Full viewport height */
+}
+
+main {
+    flex-grow: 1; /* Takes up remaining space */
+    /* border: 1px solid black; */
 }
 
 table {

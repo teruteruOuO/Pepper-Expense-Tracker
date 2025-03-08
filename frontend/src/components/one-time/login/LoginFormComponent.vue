@@ -1,26 +1,30 @@
 <template>
 <section class="login-form-component">
+    <h1>Login</h1>
     <form @submit.prevent="sendCredentials">
         <ul>
             <li>
-                <label for="username">Username: </label>
                 <input 
                 type="text" 
                 name="username" 
                 id="username"
                 autocomplete
                 required
-                v-model="credentials.username">
+                v-model="credentials.username"
+                placeholder="Username">
             </li>
             <li>
-                <label for="password">Password: </label>
                 <input 
                 type="password" 
                 name="password" 
                 id="password"
                 autocomplete
                 required
-                v-model="credentials.password">
+                v-model="credentials.password"
+                placeholder="Password">
+            </li>
+            <li>
+                <RouterLink :to="{ name: 'forgot-password' }">Forgot password?</RouterLink>
             </li>
             <li>
                 <button type="submit" :class="{ 'is-loading': isLoading }">
@@ -28,19 +32,18 @@
                         Loading...
                     </span>
                     <span v-else>
-                        Log in
+                        Login
                     </span>
                 </button>
+            </li>
+            <li class="feedback">
+                <p>{{ backendFeedback }}</p>
             </li>
         </ul>
     </form>
 
-    <section class="forgot-password-link">
-        <p><RouterLink :to="{ name: 'forgot-password' }">Forgot your password?</RouterLink></p>
-    </section>
-
-    <section class="feedback">
-        <p>{{ backendFeedback }}</p>
+    <section class="sign-up-link">
+        <p>Don't have an account? <RouterLink :to="{ name: 'sign-up' }">Sign up</RouterLink></p>
     </section>
 </section>
 </template>
@@ -98,20 +101,59 @@ const sendCredentials = async () => {
 
 
 <style scoped>
-.login-form-component {
-    border: 1px solid red;
-    border-radius: 5px;
+.login-form-component > * {
+    margin-block-end: 20px;
+
+    /* Center */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+ul > li {
+    margin-block-end: 20px;
+}
+
+.sign-up-link {
+    color: #BCBCBC;
+}
+
+.sign-up-link, li:nth-of-type(2), li:nth-of-type(4) {
+    margin-block-end: 0px;
 }
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
+}
+
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
 }
 
 button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+    background-color: rgb(255, 240, 243);
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+}
+
+a:link, a:visited {
+    color: black;
+}
+
+a:focus, a:hover {
+    color: pink;
+}
+
+a:active, .is-loading {
+    color: pink;
+    cursor: not-allowed;
 }
 
 /* style for backend feedback variables */
@@ -119,10 +161,35 @@ button:active {
     color: red;
 }
 
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
+input {
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+h1 {
+    /* Center text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+    .login-form-component > * {
+        margin-block-end: 50px;
+
+    }
+
+    ul > li {
+        margin-block-end: 50px;
+    }
+
+
+    .sign-up-link, li:nth-of-type(2){
+        margin-block-end: 0px;
+    }
 }
 
 </style>
