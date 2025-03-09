@@ -1,10 +1,6 @@
 <template>
-<section class="expense-by-category-component" v-if="summary.dayListForTheMonth.value && (summary.incomePerDay.value || summary.expensesPerDay.value)">
-    <h3>Daily cash in and cash out status</h3>
-    <p>Note: Only takes paid expenses</p>
-    <div class="chart-container">
-        <Line :data="data" :options="options" />
-    </div>
+<section class="expense-by-category-component chart-container" v-if="summary.dayListForTheMonth.value && (summary.incomePerDay.value || summary.expensesPerDay.value)">
+    <Line :data="data" :options="options" />
 </section>
 </template>
 
@@ -16,7 +12,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
 import { Line } from 'vue-chartjs'
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
-ChartJS.defaults.font.family = 'Bubblegum Sans'; 
+ChartJS.defaults.font.family = 'Gill Sans'; 
 
 const summary = monthlySummaryStore();
 const transactionExpense = ref([]);
@@ -53,7 +49,10 @@ const options = {
         },
         title: {
             display: true,
-            text: 'Daily Income & Expense'
+            text: 'Daily Income & Expense (Note: Only takes paid expenses)',
+            font: {
+                size: 16
+            }
         }
     },
     scales: {
@@ -131,8 +130,4 @@ onMounted(() => {
 
 
 <style scoped>
-.chart-container {
-    width: 500px; /* Adjust this value as needed */
-    height: 300px; /* Adjust this value as needed */
-}
 </style>

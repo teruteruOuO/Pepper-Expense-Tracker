@@ -1,9 +1,6 @@
 <template>
-<section class="top-three-expense-component" v-if="summary.topThreeExpenses.value">
-    <h3>Top Three Expenses</h3>
-    <div class="chart-container">
-        <Bar :data="data" :options="options" />
-    </div>
+<section class="top-three-expense-component chart-container" v-if="summary.topThreeExpenses.value">
+    <Bar :data="data" :options="options" />
 </section>
 </template>
 
@@ -15,7 +12,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 import { Bar } from 'vue-chartjs'
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-ChartJS.defaults.font.family = 'Bubblegum Sans'; 
+ChartJS.defaults.font.family = 'Gill Sans'; 
 
 const summary = monthlySummaryStore();
 const transactionName = ref([]);
@@ -45,7 +42,10 @@ const options = {
         },
         title: {
             display: true,
-            text: 'Top 3 Expenses'
+            text: 'Top 3 Expenses',
+            font: {
+                size: 20
+            }
         }
     },
     scales: {
@@ -81,8 +81,4 @@ onMounted(() => {
 
 
 <style scoped>
-.chart-container {
-    width: 500px; /* Adjust this value as needed */
-    height: 300px; /* Adjust this value as needed */
-}
 </style>

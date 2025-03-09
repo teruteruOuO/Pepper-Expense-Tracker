@@ -26,15 +26,3 @@ import { deadlineStore } from '@/stores/deadlines';
 
 const deadlines = deadlineStore();
 </script>
-
-
-<style scoped>
-table, th, tr, td {
-    border: 1px solid black;
-    text-align: center;
-}
-
-tbody tr:hover {
-    background-color: pink;
-}
-</style>

@@ -1,6 +1,6 @@
 <template>
 <section class="monthly-summary-component">
-    <h2>Monthly Summary Component</h2>
+    <h1>Monthly Summary</h1>
 
     <section class="loader" v-if="isLoadingPage">
     </section>
@@ -13,15 +13,19 @@
         <p>You do not have any records for this month yet. How about adding one?</p>
     </section>
 
-    <section class="success" v-else>
+    <section class="retrieve-success" v-else>
         <p>
             Hello {{ user.userInformation.first_name }}! This is your summary for 
-            {{ new Date().toLocaleString('en-US', { month: 'long', timeZone: 'UTC' }) }} 
+            <span>
+                {{ new Date().toLocaleString('en-US', { month: 'long', timeZone: 'UTC' }) }} 
+            </span>
         </p>
-        <IncomeExpenseSummaryComponent />
-        <ExpenseByCategoryComponent />
-        <TopThreeExpenseComponent />
-        <RunChartComponent />
+        <section class="charts">
+            <IncomeExpenseSummaryComponent />
+            <ExpenseByCategoryComponent />
+            <TopThreeExpenseComponent />
+            <RunChartComponent />
+        </section>
     </section>
 </section>
 </template>
@@ -129,5 +133,49 @@ const retrieveMonthlySummary = async () => {
 onMounted( async () => {
     await retrieveMonthlySummary();
 })
-
 </script>
+
+
+<style scoped>
+.monthly-summary-component {
+    margin-block-start: 20px;
+}
+
+h1, p {
+    text-align: center;
+    margin-block-end: 20px;
+}
+
+span {
+    color: #ff4161;
+    font-weight: bolder;
+    font-size: 2rem;
+}
+
+.charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+    gap: 20px; /* Space between charts */
+    justify-items: center; /* Center charts */
+    align-items: center;
+    width: 100%;
+}
+
+/* Make sure the chart containers take the full width of their grid cells */
+::v-deep(.chart-container) {
+    inline-size: 100%; /* Ensures charts stretch to fit their containers */
+    block-size: 300px; /* Adjusts height dynamically */
+    max-width: 600px; /* Prevents charts from getting too large */
+}
+
+/* Laptop and Above */
+@media screen and (min-width: 768px) {
+    .charts {
+        grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+    }
+
+    ::v-deep(.chart-container) {
+        block-size: 500px; /* Adjusts height dynamically */
+    }
+}
+</style>

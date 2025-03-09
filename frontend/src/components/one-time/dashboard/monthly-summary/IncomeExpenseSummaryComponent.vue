@@ -1,9 +1,6 @@
 <template>
-<section class="income-expense-summary-component" v-if="summary.incomeExpenseSummary.value">
-    <h3>Income and Expense</h3>
-    <div class="chart-container">
-        <Pie :data="data" :options="options" />
-    </div>
+<section class="income-expense-summary-component chart-container" v-if="summary.incomeExpenseSummary.value">
+    <Pie :data="data" :options="options" />
     <p>
         Your net
         <span v-if="revenue >= 0" class="positive-revenue">
@@ -27,7 +24,7 @@ import { ref, computed, onMounted } from 'vue';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Pie } from 'vue-chartjs';
 ChartJS.register(ArcElement, Tooltip, Legend);
-ChartJS.defaults.font.family = 'Bubblegum Sans'; 
+ChartJS.defaults.font.family = 'Gill Sans'; 
 
 const summary = monthlySummaryStore();
 const transactionType = ref(['expense', 'income']);
@@ -48,7 +45,10 @@ const options = {
     plugins: {
         title: {
             display: true,
-            text: 'Income vs. Expense'
+            text: 'Income vs. Expense',
+            font: {
+                size: 20
+            }
         }
     }
 };
@@ -84,11 +84,6 @@ onMounted(() => {
 
 
 <style scoped>
-.chart-container {
-    width: 300px; /* Adjust this value as needed */
-    height: 300px; /* Adjust this value as needed */
-}
-
 .negative-revenue {
     color: red;
 }

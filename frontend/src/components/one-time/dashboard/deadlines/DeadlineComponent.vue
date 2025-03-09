@@ -1,6 +1,6 @@
 <template>
 <section class="deadline">
-    <h2>Deadline Component</h2>
+    <h1>Deadline Summary</h1>
 
     <section class="loader" v-if="isLoadingPage">
     </section>
@@ -13,11 +13,18 @@
         <p>You don't have any budgets, expenses, or savings that are due soon.</p>
     </section>
 
-    <section class="success" v-else>
-        <DueBudgetsComponent />
-        <DueSavingsComponent />
-        <DueExpensesComponent />
-        <OverdueExpensesComponent />
+    <section class="retrieve-success" v-else>
+        <p>
+            {{ user.userInformation.first_name }}, these are the records that are due within <span>
+                30 days.
+            </span>
+        </p>
+        <section class="tables">
+            <DueBudgetsComponent />
+            <DueSavingsComponent />
+            <DueExpensesComponent />
+            <OverdueExpensesComponent />
+        </section>
     </section>
 </section> 
 </template>
@@ -96,3 +103,63 @@ onMounted(async () => {
     await retrieveDeadline();
 });
 </script>
+
+<style scoped>
+.deadline {
+    margin-block-start: 20px;
+}
+
+h1, p {
+    text-align: center;
+    margin-block-end: 20px;
+}
+
+span {
+    color: #ff4161;
+    font-weight: bolder;
+    font-size: 2rem;
+}
+
+::v-deep(table) {
+    border-radius: 15px; 
+    overflow: hidden;
+    inline-size: 100%; /* Adjust width as needed */
+    max-inline-size: 1000px; /* Prevents it from getting too wide */
+    margin: 0 auto; /* Centers the table */
+}
+
+::v-deep(table), ::v-deep(th), ::v-deep(tr), ::v-deep(td) {
+    border: 1px solid black;
+    text-align: center;
+}
+
+::v-deep(tbody tr:hover) {
+    background-color: pink;
+}
+
+.tables {
+    display: grid;
+    grid-template-columns: 1fr; /* Default: Single column on small screens */
+    gap: 20px;
+    max-inline-size: 1300px; /* Prevents excessive stretching */
+    margin: 0 auto; /* Centers the grid */
+}
+
+.tables > * {
+    border: 1px solid black;
+    border-radius: 5px;
+    margin: 0 auto;
+}
+
+::v-deep(h3) {
+    text-align: center;
+    color: rgb(252, 38, 74);
+}
+
+/* Laptop and Above */
+@media screen and (min-width: 768px) {
+    .tables {
+        grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+    }
+}
+</style>
