@@ -1,37 +1,36 @@
 <template>
 <section class="update-savings-component">
-    <h2>Update Savings Component</h2>
     <section class="loader" v-if="isLoadingPage">
     </section>
 
-    <section class="failed" v-else-if="retrieveResourcesFail">
+    <section class="retrieve-fail" v-else-if="retrieveResourcesFail">
         <p>{{ feedBackFromBackend.message }}</p>
     </section>
 
-    <section class="success" v-else>
+    <section class="retrieve-success" v-else>
+        <h1>Update Savings</h1>
         <form @submit.prevent="updateSavingsInstance()">
-            <h3>Update Savings information</h3>
             <ul>
                 <li>
                     <label for="savings-name-update">Name: </label>
-                    <input type="text" name="savings-name-update" id="savings-name-update" required v-model="savingsInstanceInformation.information.name">
+                    <input type="text" name="savings-name-update" id="savings-name-update" required v-model="savingsInstanceInformation.information.name" placeholder="Required">
                 </li>
                 <li>
                     <label for="savings-description-update">Description: </label><br>
-                    <textarea id="savings-description-update" placeholder="Enter description..." v-model="savingsInstanceInformation.information.description">
+                    <textarea id="savings-description-update" v-model="savingsInstanceInformation.information.description">
                     </textarea>
                 </li>
                 <li>
                     <label for="savings-deadline-update">Deadline: </label>
-                    <input type="date" name="savings-deadline-update" id="savings-deadline-update" required v-model="savingsInstanceInformation.information.deadline">
+                    <input type="date" name="savings-deadline-update" id="savings-deadline-update" required v-model="savingsInstanceInformation.information.deadline" placeholder="Required">
                 </li>
                 <li>
-                    <label for="savings-current-amount-update">Current Amount: {{ currencySettings.sign }}</label>
-                    <input type="number" name="savings-current-amount-update" id="savings-current-amount-update" step="0.01" v-model="savingsInstanceInformation.amount.current" :placeholder="currencySettings.name">
+                    <label for="savings-current-amount-update">Current Amount:</label>
+                    <input type="number" name="savings-current-amount-update" id="savings-current-amount-update" step="0.01" v-model="savingsInstanceInformation.amount.current" :placeholder="`${currencySettings.name} (${currencySettings.sign})`">
                 </li>
                 <li>
-                    <label for="savings-target-amount-update">Target Amount: {{ currencySettings.sign }}</label>
-                    <input type="number" name="savings-target-amount-update" id="savings-target-amount-update" step="0.01" required v-model="savingsInstanceInformation.amount.target" :placeholder="currencySettings.name">
+                    <label for="savings-target-amount-update">Target Amount:</label>
+                    <input type="number" name="savings-target-amount-update" id="savings-target-amount-update" step="0.01" required v-model="savingsInstanceInformation.amount.target" :placeholder="`${currencySettings.name} (${currencySettings.sign})`">
                 </li>
                 <li>
                     <button type="submit" :class="{ 'is-loading': isLoadingUpdate }">
@@ -48,7 +47,7 @@
             </ul>
         </form>
 
-        <section :class="{ 'feedback-fail': !feedBackFromBackend.success, 'feedback-success': feedBackFromBackend.success }">
+        <section class="feedback" :class="{ 'fail': !feedBackFromBackend.success, 'success': feedBackFromBackend.success }" ref="feedbackSection">
             <p>{{  feedBackFromBackend.message }}</p>
         </section>
     </section>
@@ -57,7 +56,7 @@
 
 <script setup>
 import axios from 'axios';
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, nextTick } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -66,6 +65,7 @@ const isLoadingPage = ref(false);
 const isLoadingUpdate = ref(false);
 const isLoadingDelete = ref(false);
 const retrieveResourcesFail = ref(false);
+const feedbackSection = ref(null);
 const feedBackFromBackend = reactive({
     message: '',
     success: false
@@ -168,6 +168,9 @@ const updateSavingsInstance = async () => {
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoadingUpdate.value = false;
 
@@ -199,6 +202,9 @@ const deleteSavingsInstance = async () => {
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoadingDelete.value = false;
         
@@ -213,34 +219,84 @@ onMounted(async () => {
 
 
 <style scoped>
-.update-savings-component {
-    border-radius: 5px;
-    border: 1px solid rgb(14, 73, 202);
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
 }
+
+h1, p {
+    text-align: center;
+}
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
 }
 
-.feedback-fail {
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input, textarea {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.fail {
     color: red;
 }
 
-.feedback-success {
+.success {
     color: green;
 }
 
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+    .update-savings-component {
+        margin-block-start: 70px;
+    }
 }
 </style>

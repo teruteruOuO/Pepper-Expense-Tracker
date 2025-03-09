@@ -1,32 +1,29 @@
 <template>
 <section class="add-savings-component">
-    <h2>Add savings component</h2>
+    <h1>New Savings Entry</h1>
 
     <form @submit.prevent="addSavings">
         <ul>
             <li>
-                <p>Enter values in {{ currencySettings.name }} {{ currencySettings.sign }}</p>
-            </li>
-            <li>
                 <label for="savings-name-add">Name: </label>
-                <input type="text" name="savings-name-add" id="savings-name-add" v-model="userSavingsInput.name" required>
+                <input type="text" name="savings-name-add" id="savings-name-add" v-model="userSavingsInput.name" required placeholder="Required">
             </li>
             <li>
                 <label for="savings-description-add">Description: </label><br>
-                <textarea id="savings-description-add" v-model="userSavingsInput.description" placeholder="Enter description...">
+                <textarea id="savings-description-add" v-model="userSavingsInput.description">
                 </textarea>
             </li>
             <li>
                 <label for="savings-deadline-add">Deadline: </label>
-                <input type="date" name="savings-deadline-add" id="savings-deadline-add" v-model="userSavingsInput.deadline" required>
+                <input type="date" name="savings-deadline-add" id="savings-deadline-add" v-model="userSavingsInput.deadline" required placeholder="Required">
             </li>
             <li>
-                <label for="savings-current-amount-add">Current Amount: {{ currencySettings.sign }}</label>
-                <input type="number" name="savings-current-amount-add" id="savings-current-amount-add" v-model="userSavingsInput.amount.current" step="0.01">
+                <label for="savings-current-amount-add">Current Amount:</label>
+                <input type="number" name="savings-current-amount-add" id="savings-current-amount-add" v-model="userSavingsInput.amount.current" step="0.01" :placeholder="`${currencySettings.name} (${currencySettings.sign})`">
             </li>
             <li>
-                <label for="savings-target-amount-add">Target Amount: {{ currencySettings.sign }}</label>
-                <input type="number" name="savings-target-amount-add" id="savings-target-amount-add" v-model="userSavingsInput.amount.target" step="0.01" required>
+                <label for="savings-target-amount-add">Target Amount:</label>
+                <input type="number" name="savings-target-amount-add" id="savings-target-amount-add" v-model="userSavingsInput.amount.target" step="0.01" required :placeholder="`${currencySettings.name} (${currencySettings.sign})`">
             </li>
             <li>
                 <button type="submit" :class="{ 'is-loading': isLoadingAddSavings }">
@@ -36,7 +33,7 @@
             </li>
         </ul>
 
-        <section class="feedback">
+        <section class="feedback" ref="feedbackSection">
             <p>{{ feedBackFromBackend }}</p>
         </section>
     </form>
@@ -46,7 +43,7 @@
 
 <script setup>
 import axios from 'axios';
-import { computed, ref, reactive, onMounted } from 'vue';
+import { computed, ref, reactive, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 
@@ -56,6 +53,7 @@ const router = useRouter();
 const isLoadingGetCurrency = ref(false);
 const isLoadingAddSavings = ref(false);
 const feedBackFromBackend = ref("");
+const feedbackSection = ref(null);
 const currencySettings = reactive({
     sign: "",
     name: ""
@@ -65,8 +63,8 @@ const userSavingsInput = reactive({
     description: "",
     deadline: new Date(),
     amount: {
-        current: 0.00,
-        target: Number()
+        current: null,
+        target: null
     }
 });
 
@@ -136,6 +134,9 @@ const addSavings = async () => {
         console.error(err);
         feedBackFromBackend.value = err.response.data.message;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoadingAddSavings.value = false;
 
@@ -152,30 +153,80 @@ onMounted(async () => {
 
 
 <style scoped>
-.add-savings-component {
-    border: 1px solid green;
-    border-radius: 5px;
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
 }
+
+h1, p {
+    text-align: center;
+}
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
+}
+
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input, textarea {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+textarea {
+    resize: vertical;
 }
 
 .feedback {
     color: red;
 }
 
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+    .add-savings-component {
+        margin-block-start: 100px;
+    }
 }
 </style>
