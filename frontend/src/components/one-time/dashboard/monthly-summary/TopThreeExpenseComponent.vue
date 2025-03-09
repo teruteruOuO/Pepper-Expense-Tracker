@@ -12,7 +12,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 import { Bar } from 'vue-chartjs'
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-ChartJS.defaults.font.family = 'Gill Sans'; 
+ChartJS.defaults.font.family = 'Courier New'; 
 
 const summary = monthlySummaryStore();
 const transactionName = ref([]);
@@ -45,7 +45,8 @@ const options = {
             text: 'Top 3 Expenses',
             font: {
                 size: 20
-            }
+            },
+            color: 'rgb(252, 38, 74)'
         }
     },
     scales: {
