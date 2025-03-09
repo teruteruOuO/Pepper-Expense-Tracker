@@ -1,11 +1,13 @@
 <template>
-<section class="enter-email-component">
-    <h2>Forgot Password Component</h2>
+<section class="enter-email-component">  
+    <h1><label for="email">Send confirmation code to your Email</label></h1>
     <form @submit.prevent="sendCode()">
         <ul>
             <li>
-                <label for="email">Email: </label>
-                <input type="email" name="email" id="email" required v-model="email"> 
+                <input type="email" name="email" id="email" required v-model="email" placeholder="Email"> 
+            </li>
+            <li class="feedback">
+                {{ feedbackFromBackend }}
             </li>
             <li>
                 <button type="submit" :class="{ 'is-loading': isLoading }">
@@ -15,10 +17,6 @@
             </li>
         </ul>
     </form>
-
-    <section class="feedback">
-        <p>{{ feedbackFromBackend }}</p>
-    </section>
 </section>
 </template>
 
@@ -58,14 +56,31 @@ const sendCode = async () => {
         isLoading.value = false;
     }
 }
-
 </script>
 
 
 <style scoped>
-.enter-email-component {
-    border: 1px solid red;
-    border-radius: 5px;
+.enter-email-component > * {
+    margin-block-end: 40px;
+
+    /* Center */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 > label {
+    font-size: 2rem;
+    text-align: center;
+}
+
+ul > li {
+    margin-block-end: 40px;
+}
+
+
+li:first-of-type, li:last-of-type {
+    margin-block-end: 0px;
 }
 
 .feedback {
@@ -73,14 +88,61 @@ const sendCode = async () => {
 }
 
 button {
-    background-color: yellow;
-    color: red;
     border: 1px solid black;
     border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-.is-loading {
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
+}
+
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
     cursor: not-allowed;
-    background-color: gray;
+}
+
+input {
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+/* Phone Horizontal */
+@media screen and (min-width: 576px) {
+    .enter-email-component {
+        margin-block-start: 30px;
+    }
+
+    .enter-email-component > * {
+        margin-block-end: 30px;
+    }
+
+    ul > li {
+        margin-block-end: 30px;
+    }
+}
+
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+    .enter-email-component {
+        margin-block-start: 0px;
+    }
+
+    .enter-code-component > * {
+        margin-block-end: 40px;
+    }
+
+    ul > li {
+        margin-block-end: 40px;
+    }
+
 }
 </style>

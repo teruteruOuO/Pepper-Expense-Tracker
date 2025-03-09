@@ -1,6 +1,5 @@
 <template>
 <main class="forgot-password-view">
-    <h1>Forgot Password</h1>
     <EnterEmailComponent v-if="monitorForgotPassword.forgotPasswordStatus.components.enter_email"/>
     <EnterCodeComponent v-else-if="monitorForgotPassword.forgotPasswordStatus.components.enter_code"/>
     <EnterPasswordComponent v-else-if="monitorForgotPassword.forgotPasswordStatus.components.enter_password"/>
@@ -21,3 +20,12 @@ import { useForgotPassword } from '@/stores/forgot-password';
 
 const monitorForgotPassword = useForgotPassword();
 </script>
+
+
+<style scoped>
+main {
+    /* Center the component */
+    justify-content: center;
+    align-content: center;
+}
+</style>

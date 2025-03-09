@@ -533,7 +533,7 @@ router.post('/forgot-password/send-code', async (req, res) => {
         resultQuery = await executeReadQuery(selectQuery, [email]);
         if (resultQuery.length !== 1) {
             Logger.error(`Error: User with the email ${email} does not exists in the database.`);
-            res.status(400).json({ message: `An account with the email ${email} does not exist in the system.`});
+            res.status(400).json({ message: `Email does not exist`});
             return;
         }
         databaseResult = resultQuery[0];
