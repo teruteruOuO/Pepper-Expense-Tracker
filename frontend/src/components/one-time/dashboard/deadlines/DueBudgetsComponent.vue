@@ -31,12 +31,8 @@ const deadlines = deadlineStore();
 
 
 <style scoped>
-table, th, tr, td {
-    border: 1px solid black;
-    text-align: center;
-}
-
-tbody tr:hover {
-    background-color: pink;
+meter {
+    display: block;
+    margin: auto;
 }
 </style>
