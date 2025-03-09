@@ -27,30 +27,22 @@
                 </ul>
             </section>
 
-            <section v-for="saving in computedSavings"
-            :key="saving.sequence" 
-            @click="enterSaving(saving.sequence)"
-            :id="`saving-id-${saving.sequence}`"
-            class="savings-entity" >
-                <p>
-                    <b>Name: </b> 
-                    {{ saving.name }}
-                </p>
-                <p>
-                    <b>Amount Ratio: </b>
-                    {{ currencySign }}{{ saving.current_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} 
-                    /
-                    {{ currencySign }}{{ saving.target_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                </p>
-                <p>
-                    <b>Deadline: </b>
-                    {{ saving.deadline }}
-                </p>
-                <p>
-                    <b>Progress: </b>
-                    <progress :id="`saving-progress-${saving.sequence}`" max="100" :value="saving.progress">{{ saving.progress }}</progress> {{ saving.progress.toFixed(2) }}%
-                </p>
-            </section>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Progress</th>
+                        <th>Deadline</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="saving in computedSavings" :key="saving.sequence" @click="enterSaving(saving.sequence)">
+                        <td>{{ saving.name }}</td>
+                        <td><progress :id="`saving-progress-${saving.sequence}`" max="100" :value="saving.progress">{{ saving.progress }}</progress> {{ saving.progress.toFixed(2) }}%</td>
+                        <td>{{ saving.deadline }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
 
         <section class="computer" v-else>
@@ -67,7 +59,6 @@
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Description</th>
                         <th>Current Amount</th>
                         <th>Target Amount</th>
                         <th>Progress</th>
@@ -77,7 +68,6 @@
                 <tbody>
                     <tr v-for="saving in computedSavings" :key="saving.sequence" @click="enterSaving(saving.sequence)">
                         <td>{{ saving.name }}</td>
-                        <td>{{ saving.description }}</td>
                         <td>{{ currencySign }}{{ saving.current_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
                         <td>{{ currencySign }}{{ saving.target_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
                         <td><progress :id="`saving-progress-${saving.sequence}`" max="100" :value="saving.progress">{{ saving.progress }}</progress> {{ saving.progress.toFixed(2) }}%</td>
@@ -179,40 +169,118 @@ onUnmounted(() => window.removeEventListener('resize', updateWidth));
 
 
 <style scoped>
-table, th, tr, td {
-    border: 1px solid black;
-    text-align: left;
+/* General Styles start */
+progress {
+    display: block;
+    margin: 0 auto;
 }
 
-tbody tr:hover, .savings-entity:hover {
-    cursor: pointer;
-    background-color: pink;
+.add-savings-link {
+    margin-block-start: 20px;
 }
 
-/* Phone table style */
-.savings-entity {
-    /* Flex parent */
+a {
+    display: block;
+    inline-size: 100%;
+    max-inline-size: 150px;
+    text-align: center;
+    margin: 0 auto;
+}
+
+a:link, a:visited {
+    color: black;
+}
+
+a:focus, a:hover {
+    color: pink;
+}
+
+a:active {
+    color: pink;
+}
+
+label {
+    display: block;
+    margin: 0 auto;
+}
+
+li {
     display: flex;
-    flex-wrap: wrap;
-
-    border: 1px solid black;
-    margin-block-end: 10px;
-}
-
-.savings-entity:last-of-type {
-    margin-block-end: 0px;
-}
-
-
-.savings-entity > * {
-    /* Flex child */
-    flex-grow: 1;
-    border: 1px solid black;
-
-    /* Center Text */
-    display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-content: center;
 }
+
+input {
+    border-radius: 5px;
+    inline-size: 250px;
+    block-size: 38px;
+    border: 1px solid black;
+    display: block;
+    margin: 0 auto;
+}
+
+a, li {
+    margin-block-end: 20px;
+}
+/* General Styles end */
+
+
+/* Table Style start */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+    inline-size: 100%;
+    max-inline-size: 1200px;
+    margin: 0 auto;
+}
+
+th, td {
+    padding: 0.5rem;
+    border-block-end: 1px solid rgb(151, 70, 83); /* Bottom border */
+    border-inline-end: 1px solid rgb(151, 70, 83); /* Right border */
+}
+
+th {
+    background: linear-gradient(to right, white, rgb(255, 228, 232), white, rgb(255, 228, 232), white);
+}
+
+td {
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds "..." for overflowed text */
+    white-space: nowrap;
+}
+
+table tr td:first-child, 
+table tr th:first-child {
+    border-inline-start: 1px solid rgb(151, 70, 83); 
+}
+
+table tr th {
+    border-block-start: 1px solid rgb(151, 70, 83); 
+}
+
+table tr:first-child th:first-child {
+    border-top-left-radius: 0.5rem;
+}
+
+table tr:first-child th:last-child {
+    border-top-right-radius: 0.5rem;
+}
+
+table tr:last-child td:first-child {
+    border-bottom-left-radius: 0.5rem;
+}
+
+table tr:last-child td:last-child {
+    border-bottom-right-radius: 0.5rem;
+}
+
+tbody tr:hover {
+    cursor: pointer;
+    background-color: rgb(255, 243, 245);
+    color: rgb(255, 14, 54);
+}
+/* Table Style end */
 
 </style>

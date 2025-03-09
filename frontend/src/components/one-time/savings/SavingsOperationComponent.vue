@@ -1,19 +1,24 @@
 <template>
 <section class="savings-operation-component">
-    <h2>Savings Operation Component</h2>
     <section class="loader" v-if="isLoadingPage">
     </section>
     
-    <section class="failed" v-else-if="retrieveResourcesFail" :class="{ 'feedback-fail': !savingsInformation.target, 'feedback-success': savingsInformation.target }">
+    <section class="retrieve-failed" v-else-if="retrieveResourcesFail">
         <p>{{ feedBackFromBackend.message }}</p>
     </section>
 
-    <section class="success" v-else>
-        <form @submit.prevent="">
+    <section class="retrieve-success" v-else>
+        <h1 for="current-amount-operation">Add / Deduct</h1>
+        <form @submit.prevent="operateCurrentAmount()">
             <ul>
                 <li>
-                    <label for="current-amount-operation">Add/Deduct to Savings: {{ currencySettings.sign }}</label>
                     <input type="number" name="current-amount-operation" id="current-amount-operation" step="0.01" min="1" v-model="inputValue" required :placeholder="currencySettings.name">
+                </li>
+                <li>
+                    <progress :id="`savings-progress-${savingsInformation.sequence}`" max="100" :value="savingsInformation.progress">{{ savingsInformation.progress }}</progress> ({{ savingsInformation.progress.toFixed(2) }}%)
+                </li>
+                <li>
+                    {{ currencySettings.sign }}{{ savingsInformation.current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} / {{ currencySettings.sign }}{{ savingsInformation.target.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
                 </li>
                 <li>
                     <button type="button" :class="{ 'is-loading': isLoadingOperation }" @click="operateCurrentAmount('add')">
@@ -27,16 +32,10 @@
                         <span v-else>Loading...</span>
                     </button>
                 </li>
-                <li>
-                    <progress :id="`savings-progress-${savingsInformation.sequence}`" max="100" :value="savingsInformation.progress">{{ savingsInformation.progress }}</progress> ({{ savingsInformation.progress.toFixed(2) }}%)
-                </li>
-                <li>
-                    {{ currencySettings.sign }}{{ savingsInformation.current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}/{{ currencySettings.sign }}{{ savingsInformation.target.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                </li>
             </ul>
         </form>
 
-        <section class="operation-feedback" :class="{ 'feedback-fail': !feedBackFromBackend.success, 'feedback-success': feedBackFromBackend.success }">
+        <section class="feedback" :class="{ 'fail': !feedBackFromBackend.success, 'success': feedBackFromBackend.success }" ref="feedbackSection">
             <p>{{ feedBackFromBackend.message }}</p>
         </section>
     </section>
@@ -46,7 +45,7 @@
 
 <script setup>
 import axios from 'axios';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, nextTick } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -62,6 +61,7 @@ const user = useUserStore();
 const route = useRoute();
 const router = useRouter();
 const inputValue = ref(Number());
+const feedbackSection = ref(null);
 const currencySettings = reactive({
     name: '',
     sign: ''
@@ -166,6 +166,9 @@ const operateCurrentAmount = async (operation) => {
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoadingOperation.value = false;
 
@@ -180,44 +183,84 @@ onMounted(async () => {
 
 
 <style scoped>
-.savings-operation-component {
-    border-radius: 5px;
-    border: 1px solid rgb(128, 94, 0);
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
 }
+
+h1, p {
+    text-align: center;
+}
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
 }
 
-.feedback-fail {
-    color: red;
-}
-
-.feedback-success {
-    color: green;
-}
-
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
     cursor: not-allowed;
 }
 
-ul {
-    display: flex;
-    flex-wrap: wrap;
+input, textarea {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
 }
 
-li:last-of-type {
-    color: blue;
+textarea {
+    resize: vertical;
 }
 
+.fail {
+    color: red;
+}
+
+.success {
+    color: green;
+}
+
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+    .savings-operation-component {
+        margin-block-start: 70px;
+    }
+}
 </style>

@@ -133,6 +133,12 @@ span {
     text-align: center;
 }
 
+::v-deep(td) {
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds "..." for overflowed text */
+    white-space: nowrap;
+}
+
 ::v-deep(tbody tr:hover) {
     background-color: pink;
 }
