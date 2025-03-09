@@ -24,7 +24,7 @@ import { ref, computed, onMounted } from 'vue';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Pie } from 'vue-chartjs';
 ChartJS.register(ArcElement, Tooltip, Legend);
-ChartJS.defaults.font.family = 'Gill Sans'; 
+ChartJS.defaults.font.family = 'Courier New'; 
 
 const summary = monthlySummaryStore();
 const transactionType = ref(['expense', 'income']);
@@ -48,7 +48,8 @@ const options = {
             text: 'Income vs. Expense',
             font: {
                 size: 20
-            }
+            },
+            color: 'rgb(252, 38, 74)'
         }
     }
 };
@@ -90,5 +91,15 @@ onMounted(() => {
 
 .positive-revenue {
     color: green
+}
+
+.income-expense-summary-component {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers the Pie chart horizontally */
+    justify-content: center; /* Centers vertically (if needed) */
+    text-align: center; /* Ensures text inside remains centered */
+    margin: 0 auto;
+    width: fit-content; /* Prevents unnecessary stretching */
 }
 </style>

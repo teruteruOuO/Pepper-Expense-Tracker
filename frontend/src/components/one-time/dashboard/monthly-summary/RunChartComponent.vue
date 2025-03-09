@@ -12,7 +12,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
 import { Line } from 'vue-chartjs'
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
-ChartJS.defaults.font.family = 'Gill Sans'; 
+ChartJS.defaults.font.family = 'Courier New'; 
 
 const summary = monthlySummaryStore();
 const transactionExpense = ref([]);
@@ -52,7 +52,8 @@ const options = {
             text: 'Daily Income & Expense (Note: Only takes paid expenses)',
             font: {
                 size: 16
-            }
+            },
+            color: 'rgb(252, 38, 74)'
         }
     },
     scales: {
