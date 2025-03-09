@@ -36,7 +36,7 @@
                     </span>
                 </button>
             </li>
-            <li class="feedback">
+            <li class="feedback" ref="feedbackSection"> 
                 <p>{{ backendFeedback }}</p>
             </li>
         </ul>
@@ -52,7 +52,7 @@
 <script setup>
 import axios from 'axios';
 import { RouterLink } from 'vue-router';
-import { ref, reactive } from 'vue';
+import { ref, reactive, nextTick } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRouter } from 'vue-router';
 
@@ -65,6 +65,7 @@ const credentials = reactive({
     username: "",
     password: ""
 });
+const feedbackSection = ref(null);
 
 // Send credentials to the backend server to validate 
 const sendCredentials = async () => {
@@ -92,6 +93,9 @@ const sendCredentials = async () => {
         console.error(err);
         backendFeedback.value = err.response.data.message;
         isLoading.value = false;
+
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
 
     } finally {
         isLoading.value = false;

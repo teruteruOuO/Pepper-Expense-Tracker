@@ -1,6 +1,6 @@
 <template>
 <section class="enter-password-component">
-    <h2>Enter your new password</h2>
+    <h1>Enter your new password</h1>
     <form @submit.prevent="changePassword()">
         <ul>
             <li>
@@ -8,7 +8,7 @@
                 <input type="password" name="password" id="password" required v-model="userPassword.new_password">
             </li>
             <li>
-                <label for="password">Confirm Password: </label>
+                <label for="confirm-password">Confirm Password: </label>
                 <input type="password" name="confirm-password" id="confirm-password" required v-model="userPassword.confirm_password">
             </li>
             <li>
@@ -20,10 +20,10 @@
         </ul>
     </form>
 
-    <section class="feedback">
-        <p class="feedback-fail">{{ confirmPasswordFeedback }}</p>
-        <p class="feedback-fail"> {{ passwordRegExFeedback }}</p>
-        <p :class="{ 'feedback-fail': !feedbackFromBackendSuccess, 'feedback-success': feedbackFromBackendSuccess }">{{ feedbackFromBackend }}</p>
+    <section class="feedback fail">
+        <p>{{ confirmPasswordFeedback }}</p>
+        <p> {{ passwordRegExFeedback }}</p>
+        <p :class="{ 'fail': !feedbackFromBackendSuccess, 'success': feedbackFromBackendSuccess }" ref="feedbackSection">{{ feedbackFromBackend }}</p>
     </section>
 </section>
 </template>
@@ -31,7 +31,7 @@
 
 <script setup>
 import axios from 'axios';
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, nextTick } from 'vue';
 import { useForgotPassword } from '@/stores/forgot-password';
 import { useRouter } from 'vue-router';
 
@@ -45,6 +45,7 @@ const userPassword = reactive({
     new_password: "",
     confirm_password: ""
 });
+const feedbackSection = ref(null);
 
 /* Computed variables */
 // Informs user that password and confirm password fields do not match
@@ -100,6 +101,9 @@ const changePassword = async() => {
         isLoading.value = false;
         monitorForgotPassword.forgotPasswordStatus.completed = true;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
         // Redirect after 5 seconds
         setTimeout(() => {
             // Clear email-sign up pinia store and revert it back to its original state
@@ -118,6 +122,9 @@ const changePassword = async() => {
         feedbackFromBackend.value = `* ${err.response.data.message}`;
         isLoadingSignup.value = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoading.value = false;
 
@@ -128,29 +135,100 @@ const changePassword = async() => {
 </script>
 
 
-<style>
-.enter-password-component {
-    border: 1px solid red;
-
+<style scoped>
+.enter-password-component > * {
+    margin-block-end: 50px;
+    
+    /* Center */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-.feedback-fail {
-    color: red;
+.enter-password-component h1 {
+    text-align: center;
+    margin-block-start: 20px;
+    margin-block-end: 20px;
 }
 
-.feedback-success {
-    color: green;
+section.feedback {
+    margin-block-end: 0px;
+}
+
+form {
+    margin-block-end: 10px !important; 
+}
+
+ul {
+    /* Center */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+ul > li {
+    margin-block-end: 20px;
+}
+
+li:last-of-type {
+    margin-block-end: 0px;
+}
+
+p {
+    margin-block-end: 20px;
+    text-align: center;
+}
+
+p:last-of-type {
+    margin-block-end: 0px;
 }
 
 button {
-    background-color: yellow;
-    color: red;
     border: 1px solid black;
     border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-.is-loading {
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
+}
+
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
     cursor: not-allowed;
-    background-color: gray;
+}
+
+label {
+    display: block;
+}
+
+input, select {
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+.fail {
+    color: red;
+}
+
+.success {
+    color: green;
+}
+
+/* Phone Horizontal */
+@media screen and (min-width: 576px) {
+    .enter-password-component h1 {
+        margin-block-start: 30px;
+    }
 }
 </style>
