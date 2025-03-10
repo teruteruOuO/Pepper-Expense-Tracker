@@ -8,11 +8,11 @@
     </section>
 
     <section class="retrieve-success" v-else>
-        <h1 for="current-amount-operation">Add / Deduct</h1>
+        <h1><label for="current-amount-operation">Add / Deduct</label></h1>
         <form @submit.prevent="operateCurrentAmount()">
             <ul>
                 <li>
-                    <input type="number" name="current-amount-operation" id="current-amount-operation" step="0.01" min="1" v-model="inputValue" required :placeholder="currencySettings.name">
+                    <input type="number" name="current-amount-operation" id="current-amount-operation" step="0.01" min="1" v-model="inputValue" required :placeholder="`${currencySettings.name} (${currencySettings.sign})`">
                 </li>
                 <li>
                     <progress :id="`savings-progress-${savingsInformation.sequence}`" max="100" :value="savingsInformation.progress">{{ savingsInformation.progress }}</progress> ({{ savingsInformation.progress.toFixed(2) }}%)
@@ -60,7 +60,7 @@ const feedBackFromBackend = reactive({
 const user = useUserStore();
 const route = useRoute();
 const router = useRouter();
-const inputValue = ref(Number());
+const inputValue = ref(null);
 const feedbackSection = ref(null);
 const currencySettings = reactive({
     name: '',
@@ -192,6 +192,10 @@ h1, p {
     text-align: center;
 }
 
+label {
+    font-size: 2rem;
+}
+
 form {
     display: contents;
 }
@@ -255,6 +259,10 @@ textarea {
 
 .success {
     color: green;
+}
+
+.retrieve-fail {
+    text-align: center;
 }
 
 /* Laptop and above*/

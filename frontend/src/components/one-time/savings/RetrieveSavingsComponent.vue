@@ -223,6 +223,11 @@ input {
 a, li {
     margin-block-end: 20px;
 }
+
+.retrieve-fail, .none {
+    text-align: center;
+}
+
 /* General Styles end */
 
 
@@ -242,7 +247,7 @@ th, td {
 }
 
 th {
-    background: linear-gradient(to right, white, rgb(255, 228, 232), white, rgb(255, 228, 232), white);
+    background: linear-gradient(to right, white, white, white, rgb(255, 228, 232), rgb(255, 228, 232), white, white, white);
 }
 
 td {
@@ -278,9 +283,17 @@ table tr:last-child td:last-child {
 
 tbody tr:hover {
     cursor: pointer;
-    background-color: rgb(255, 243, 245);
+    background:
+        linear-gradient(to bottom, white, rgba(255, 187, 198, 0.5), rgba(255, 255, 255, 0.7), white),  
+        linear-gradient(to right, white, rgb(255, 187, 198), white, rgb(255, 187, 198), white, rgb(255, 187, 198));
     color: rgb(255, 14, 54);
 }
 /* Table Style end */
 
+/* Phone horizontal*/
+@media screen and (min-width: 576px) {
+    td {
+        white-space: wrap;
+    }
+}
 </style>

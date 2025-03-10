@@ -351,6 +351,10 @@ input, select {
     color: green;
 }
 
+.retrieve-fail {
+    text-align: center;
+}
+
 /* Phone Horizontal */
 @media screen and (min-width: 576px) {
     .signup-form-component h1 {

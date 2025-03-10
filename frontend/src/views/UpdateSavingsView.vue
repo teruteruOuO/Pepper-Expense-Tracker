@@ -3,12 +3,12 @@
     <section class="buttons">
         <ul>
             <li>
-                <button type="button" class="savings-operation" @click="switchComponent(SavingsOperationComponent)">
+                <button type="button" class="savings-operation" @click="switchComponent('SavingsOperationComponent')">
                     Add / Deduct
                 </button>
             </li>
             <li>
-                <button type="button" class="update-savings" @click="switchComponent(UpdateSavingsComponent)">
+                <button type="button" class="update-savings" @click="switchComponent('UpdateSavingsComponent')">
                     Update Savings
                 </button>
             </li>
@@ -21,11 +21,31 @@
 <script setup>
 import UpdateSavingsComponent from '@/components/one-time/savings/UpdateSavingsComponent.vue';
 import SavingsOperationComponent from '@/components/one-time/savings/SavingsOperationComponent.vue';
-import { shallowRef  } from 'vue';
+import { ref, onMounted } from 'vue';
 
-const currentComponent = shallowRef(SavingsOperationComponent);
-// Function to switch components dynamically
-const switchComponent = (component) => currentComponent.value = component;
+// Map component names to actual component objects
+const componentMap = {
+    SavingsOperationComponent,
+    UpdateSavingsComponent
+};
+
+// Retrieve stored component or default to SavingsOperationComponent
+const storedComponent = localStorage.getItem('selectedSavingsComponent') || 'SavingsOperationComponent';
+const currentComponent = ref(componentMap[storedComponent]);
+
+// Function to switch components and store selection
+const switchComponent = (componentName) => {
+    currentComponent.value = componentMap[componentName];
+    localStorage.setItem('selectedSavingsComponent', componentName);
+};
+
+// Ensure selected component persists on page reload
+onMounted(() => {
+    const savedComponent = localStorage.getItem('selectedSavingsComponent');
+    if (savedComponent && componentMap[savedComponent]) {
+        currentComponent.value = componentMap[savedComponent];
+    }
+});
 </script>
 
 <style scoped>

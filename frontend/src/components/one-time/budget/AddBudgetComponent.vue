@@ -1,6 +1,5 @@
 <template>
 <section class="add-budget-component">
-    <h2>Add Budget Component</h2>
     <section class="loader" v-if="isLoadingGetCurrency">
     </section>
 
@@ -9,23 +8,21 @@
     </section>
 
     <section class="success" v-else>
+        <h1>New Budget Entry</h1>
         <form @submit.prevent="addBudget()">
             <ul>
                 <li>
-                    <p>Enter values in {{ currencySettings.name }} {{ currencySettings.sign }}</p>
-                </li>
-                <li>
                     <label for="budget-name-add">Name: </label>
-                    <input type="text" name="budget-name-add" id="budget-name-add" v-model="userBudgetInput.name" required>
+                    <input type="text" name="budget-name-add" id="budget-name-add" v-model="userBudgetInput.name" required placeholder="Required">
                 </li>
                 <li>
                     <label for="budget-description-add">Description: </label><br>
-                    <textarea id="budget-description-add" v-model="userBudgetInput.description" placeholder="Enter description...">
+                    <textarea id="budget-description-add" v-model="userBudgetInput.description">
                     </textarea>
                 </li>
                 <li>
-                    <label for="budget-limit-amount-add">Limit Amount: {{ currencySettings.sign }}</label>
-                    <input type="number" name="budget-limit-amount-add" id="budget-limit-amount-add" v-model="userBudgetInput.limit_amount" step="0.01" required>
+                    <label for="budget-limit-amount-add">Limit Amount: </label>
+                    <input type="number" name="budget-limit-amount-add" id="budget-limit-amount-add" v-model="userBudgetInput.limit_amount" step="0.01" required :placeholder="`${currencySettings.name} (${currencySettings.sign})`">
                 </li>
                 <li>
                     <label for="budget-start-date-add">Start Date: </label>
@@ -44,7 +41,7 @@
             </ul>
         </form>
 
-        <section class="feedback">
+        <section class="feedback" ref="feedbackSection">
             <p>{{ feedBackFromBackend }}</p>
         </section>
     </section>
@@ -54,7 +51,7 @@
 
 <script setup>
 import axios from 'axios';
-import { computed, ref, reactive, onMounted } from 'vue';
+import { computed, ref, reactive, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 
@@ -64,6 +61,7 @@ const router = useRouter();
 const isLoadingGetCurrency = ref(false);
 const isLoadingAddBudget = ref(false);
 const feedBackFromBackend = ref("");
+const feedbackSection = ref(null);
 const retrieveResourcesFail = ref(false);
 const currencySettings = reactive({
     sign: "",
@@ -72,7 +70,7 @@ const currencySettings = reactive({
 const userBudgetInput = reactive({
     name: "",
     description: "",
-    limit_amount: Number(),
+    limit_amount: null,
     date: {
         start: new Date(),
         end: new Date()
@@ -143,6 +141,9 @@ const addBudget = async () => {
         console.error(`An error occured while adding the user's budget information.`);
         console.error(err);
         feedBackFromBackend.value = err.response.data.message;
+        
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
 
     } finally {
         isLoadingAddBudget.value = false;
@@ -159,30 +160,80 @@ onMounted(async () => {
 
 
 <style scoped>
-.add-budget-component {
-    border: 1px solid green;
-    border-radius: 5px;
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
 }
+
+h1, p {
+    text-align: center;
+}
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
+}
+
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input, textarea {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+textarea {
+    resize: vertical;
 }
 
 .feedback {
     color: red;
 }
 
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+    .add-budget-component {
+        margin-block-start: 100px;
+    }
 }
 </style>
