@@ -265,6 +265,10 @@ td {
     white-space: nowrap;
 }
 
+td:nth-of-type(5) {
+    text-overflow:clip;
+}
+
 table tr td:first-child, 
 table tr th:first-child {
     border-inline-start: 1px solid rgb(151, 70, 83); 

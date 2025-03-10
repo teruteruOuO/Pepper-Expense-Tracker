@@ -1,35 +1,32 @@
 <template>
 <section class="add-transaction-component">
-    <h2>Add Transaction Component</h2>
     <section class="loader" v-if="isLoadingGetCurrencyAndBudgets">
     </section>
 
-    <section :class="{ 'feedback': !feedBackFromBackend.success }" v-else-if="retrieveResourcesFail">
+    <section class="retrieve-fail" v-else-if="retrieveResourcesFail">
         <p>{{ feedBackFromBackend.message }}</p>
     </section>
 
-    <section class="resources-retrieve-success" v-else>
+    <section class="retrieve-success" v-else>
+        <h1>New Transaction Entry</h1>
         <form @submit.prevent="addTransaction()">
             <ul>
                 <li>
-                    <p>Enter values in {{ currencySettings.name }} {{ currencySettings.sign }}</p>
-                </li>
-                <li>
                     <label for="transaction-name-add">Name: </label>
-                    <input type="text" name="transaction-name-add" id="transaction-name-add" required v-model="userTransactionInput.transaction.name">
+                    <input type="text" name="transaction-name-add" id="transaction-name-add" required v-model="userTransactionInput.transaction.name" placeholder="Required">
                 </li>
                 <li>
                     <label for="transaction-description-add">Description: </label><br>
-                    <textarea id="transaction-description-add" placeholder="Enter description..." v-model="userTransactionInput.transaction.description">
+                    <textarea id="transaction-description-add" v-model="userTransactionInput.transaction.description">
                     </textarea>
                 </li>
                 <li>
-                    <label for="transaction-amount-add">Amount: {{ currencySettings.sign }}</label>
-                    <input type="number" name="transaction-amount-add" id="transaction-amount-add" step="0.01" v-model="userTransactionInput.transaction.amount" required>
+                    <label for="transaction-amount-add">Amount: </label>
+                    <input type="number" name="transaction-amount-add" id="transaction-amount-add" step="0.01" v-model="userTransactionInput.transaction.amount" required :placeholder="`${currencySettings.name} (${currencySettings.sign})`">
                 </li>
                 <li>
                     <label for="transaction-type-add">Type: </label>
-                    <select name="transaction-type-add" id="transaction-type-add" v-model="userTransactionInput.selectedFromList.type" required>
+                    <select name="transaction-type-add" id="transaction-type-add" v-model="userTransactionInput.selectedFromList.type" required placeholder="Required">
                         <option value="expense">Expense</option>
                         <option value="income">Income</option>
                     </select>
@@ -40,7 +37,7 @@
                 </li>
                 <li>
                     <label for="transaction-category-add">Category (Pick a type first): </label>
-                    <select name="transaction-category-add" id="transaction-category-add" v-model="userTransactionInput.selectedFromList.category" required>
+                    <select name="transaction-category-add" id="transaction-category-add" v-model="userTransactionInput.selectedFromList.category" required placeholder="Required">
                         <option v-for="category in filteredCategories" :key="category.category_id" :value="category.category_id">
                             {{ category.category_name }}
                         </option>
@@ -65,7 +62,7 @@
             </ul>
         </form>
 
-        <section class="feedback" :class="{ 'feedback': !feedBackFromBackend.success }">
+        <section class="feedback" :class="{ 'feedback': !feedBackFromBackend.success }" ref="feedbackSection">
             <p>{{ feedBackFromBackend.message }}</p>
         </section>
     </section>
@@ -74,13 +71,14 @@
 
 <script setup>
 import axios from 'axios';
-import { computed, ref, reactive, onMounted } from 'vue';
+import { computed, ref, reactive, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 
 // Initialize variables
 const user = useUserStore();
 const router = useRouter();
+const feedbackSection = ref(null);
 const isLoadingGetCurrencyAndBudgets = ref(false);
 const isLoadingAddTransaction = ref(false);
 const retrieveResourcesFail = ref(false);
@@ -211,6 +209,9 @@ const addTransaction = async () => {
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoadingAddTransaction.value = false;
 
@@ -224,30 +225,93 @@ onMounted(async () => {
 
 
 <style scoped>
-.add-transaction-component {
-    border: 1px solid green;
-    border-radius: 5px;
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
 }
+
+h1, p {
+    text-align: center;
+}
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
+}
+
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input, textarea, select {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+textarea {
+    resize: vertical;
 }
 
 .feedback {
     color: red;
 }
 
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
+/* Laptop and above:*/
+@media screen and (min-width: 768px) {
+    .add-transaction-component {
+        margin-block-start: 100px;
+    }
+
+    ul {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+        gap: 20px 30px; /* Adjust spacing */
+        inline-size: 700px; /* Adjust width for better alignment */
+    }
+
+    /* Make the button full width in a single column */
+    li:last-child {
+        grid-column: span 2;
+        text-align: center;
+    }
 }
 </style>

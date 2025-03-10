@@ -1,6 +1,5 @@
 <template>
 <main class="transaction-view">
-    <h1>Transaction Page</h1>
     <RetrieveTransactionsComponent />
 </main>
 </template>
