@@ -9,14 +9,14 @@
 
     <section class="retrieve-success" v-else>
         <h1>Update Transaction</h1>
+        <p v-if="transactionInstanceInformation.transaction.type === 'expense'">
+            This expense is {{ transactionInstanceInformation.transaction.resolved ? 'Resolved (Paid)' : 'Unresolved (Unpaid)' }}
+        </p>
         <form @submit.prevent="updateTransactionInstance()">
             <ul>
                 <li>
                     <label for="transaction-name-update">Name: </label>
                     <input type="text" name="transaction-name-update" id="transaction-name-update" required v-model="transactionInstanceInformation.transaction.name">
-                    <p v-if="transactionInstanceInformation.transaction.type === 'expense'">
-                        This expense is {{ transactionInstanceInformation.transaction.resolved ? 'Resolved (Paid)' : 'Unresolved (Unpaid)' }}
-                    </p>
                 </li>
                 <li>
                     <label for="transaction-description-update">Description: </label><br>
@@ -338,6 +338,11 @@ h1 {
     margin-block-start: 30px;
     margin-block-end: 30px;
     text-align: center;
+}
+
+p {
+    text-align: center;
+    margin-block-end: 20px;
 }
 
 form {
