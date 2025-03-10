@@ -165,6 +165,13 @@ span {
     color: rgb(252, 38, 74);
 }
 
+/* Phone Horizontal */
+@media screen and (min-width: 576px) {
+    ::v-deep(td) {
+        white-space: wrap;
+    }
+}
+
 /* Laptop and Above */
 @media screen and (min-width: 768px) {
     .tables {
