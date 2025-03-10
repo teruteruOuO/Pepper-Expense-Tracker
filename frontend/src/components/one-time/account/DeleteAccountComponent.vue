@@ -1,6 +1,6 @@
 <template>
 <section class="delete-account-component">
-    <h2>Delete Account</h2>
+    <h1>Delete Account</h1>
     <form @submit.prevent="sendCode()">
         <ul>
             <li>
@@ -35,7 +35,7 @@
         </ul>
     </form>
 
-    <section :class="{ 'feedback-success': feedbackFromBackendSuccess, 'feedback-fail': !feedbackFromBackendSuccess }">
+    <section class="feedback" :class="{ 'success': feedbackFromBackendSuccess, 'fail': !feedbackFromBackendSuccess }" ref="feedbackSection">
         <p>{{ feedbackFromBackend }}</p>
         <p>{{ confirmPasswordFeedback }}</p>
     </section>
@@ -45,7 +45,7 @@
 
 <script setup>
 import axios from 'axios';
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, nextTick } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRouter } from 'vue-router';
 
@@ -54,6 +54,7 @@ const isLoadingSendCode = ref(false);
 const isLoadingDeleteAccount= ref(false);
 const feedbackFromBackend = ref("");
 const feedbackFromBackendSuccess = ref(false);
+const feedbackSection = ref(null);
 const user = useUserStore();
 const router = useRouter();
 const oneTimeCode = ref("");
@@ -108,6 +109,9 @@ const sendCode = async () => {
     } finally {
         isLoadingSendCode.value = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     }
 }
 
@@ -141,6 +145,9 @@ const deleteAccount = async (req, res) => {
         feedbackFromBackendSuccess.value = false;
         feedbackFromBackend.value = `* ${err.response.data.message}`;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoadingDeleteAccount.value = false;
 
@@ -150,34 +157,77 @@ const deleteAccount = async (req, res) => {
 
 
 <style scoped>
-.delete-account-component {
-    border: 1px solid rgb(124, 0, 128);
-    border-radius: 5px;
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
 }
+
+h1, .feedback {
+    text-align: center;
+}
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
 }
 
-.feedback-fail {
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input, textarea, select {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.fail {
     color: red;
 }
 
-.feedback-success {
+.success {
     color: green;
-}
-
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
 }
 </style>

@@ -1,26 +1,28 @@
 <template>
 <section class="notification-component">
-    <h2>Notification</h2>
     <section class="loader" v-if="isLoadingPage">
     </section>
 
     <section class="retrieve-fail" v-else-if="retrieveResourceFail">
         <p>Unable to retrieve your notification status. Please refresh the page or try again later</p>
     </section>
-
-    <div class="notification-bar" v-else>
-        <label for="notification">Notification status: </label>
-        <label class="switch">
-            <input type="checkbox" 
-            name="notification" 
-            id="notification" 
-            v-model="isNotificationEnabled" 
-            :class="{ 'checked': isNotificationEnabled, 'is-loading': isLoading }"
-            @click="changeNotificationStatus()">
-            
-            <span class="slider round"></span>
-        </label>
-    </div>
+    <section class="retrieve-success" v-else>
+        <h1>
+            <label for="notification">Notification Status: </label>
+        </h1>
+        <div class="notification-bar">
+            <label class="switch">
+                <input type="checkbox" 
+                name="notification" 
+                id="notification" 
+                v-model="isNotificationEnabled" 
+                :class="{ 'checked': isNotificationEnabled, 'is-loading': isLoading }"
+                @click="changeNotificationStatus()">
+                
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </section>
 </section>
 </template>
 
@@ -86,16 +88,26 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.notification-component {
-    border: 1px solid rgb(124, 0, 128);
-    border-radius: 5px;
+h1 {
+    margin-block-start: 30px;
+    text-align: center;
+}
+
+label {
+    font-size: 2rem;
+}
+
+div {
+    display: flex;
+    justify-content: center;
+    align-content: center;
 }
 
 .switch {
     position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
+    display: block;
+    width: 120px;
+    height: 68px;
 }
 
 .switch input { 
@@ -119,27 +131,27 @@ onMounted(async () => {
 .slider:before {
     position: absolute;
     content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
+    height: 52px;
+    width: 52px;
+    left: 8px;
+    bottom: 8px;
     background-color: white;
     -webkit-transition: .4s;
     transition: .4s;
 }
 
 input.checked + .slider {
-    background-color: #2196F3;
+    background-color: pink;
 }
 
 input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3;
+    box-shadow: 0 0 5px pink;
 }
 
 input.checked + .slider:before {
-    -webkit-transform: translateX(26px);
-    -ms-transform: translateX(26px);
-    transform: translateX(26px);
+    -webkit-transform: translateX(52px);
+    -ms-transform: translateX(52px);
+    transform: translateX(52px);
 }
 
 /* Rounded sliders */
