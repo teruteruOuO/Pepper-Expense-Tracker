@@ -59,7 +59,6 @@ li {
 a {
     background-color: black;
     border: 1px solid black;
-    border-radius: 20px;
     font-size: 1.1rem;
     color: white;
     padding: 10px 20px;
@@ -80,21 +79,15 @@ a:link, a:visited {
 }
 
 a:focus, a:hover {
-    background-color: rgb(255, 225, 230);
+    background-color: white;
     color: rgb(59, 59, 59);
     border-color: rgb(59, 59, 59);
 }
 
 a:active {
-    background-color: rgb(255, 240, 243);
+    background: linear-gradient(to bottom, white, white, pink, white, white);
     color: rgb(102, 101, 101);
-    border-color: rgb(117, 117, 117);
-}
-
-
-/* Phone Horizontal */
-@media screen and (min-width: 576px) {
-
+    border-color: white;
 }
 
 /* Laptop */
@@ -129,15 +122,5 @@ a:active {
         justify-content: center;
         align-items: center;
     }
-}
-
-/* Desktop */
-@media screen and (min-width: 1024px) {
-
-}
-
-/* Large Desktop */
-@media screen and (min-width: 1200px) {
-
 }
 </style>
