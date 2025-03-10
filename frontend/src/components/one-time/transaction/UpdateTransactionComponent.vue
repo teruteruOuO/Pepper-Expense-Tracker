@@ -20,7 +20,7 @@
                 </li>
                 <li>
                     <label for="transaction-description-update">Description: </label><br>
-                    <textarea id="transaction-description-update" placeholder="Enter description..." v-model="transactionInstanceInformation.transaction.description">
+                    <textarea id="transaction-description-update" v-model="transactionInstanceInformation.transaction.description">
                     </textarea>
                 </li>
                 <li>
