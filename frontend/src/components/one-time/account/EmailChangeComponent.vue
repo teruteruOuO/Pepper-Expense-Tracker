@@ -1,22 +1,19 @@
 <template>
 <section class="email-change-component">
-    <h2>Email Change</h2>
     <section class="loader" v-if="isLoadingPage">
     </section>
 
-    <section class="retrieve-fail" :class="{ 'feedback-success': feedbackFromBackendSuccess, 'feedback-fail': !feedbackFromBackendSuccess }" v-else-if="retrieveResourceFail">
+    <section class="retrieve-fail" v-else-if="retrieveResourceFail">
         <p>{{ feedbackFromBackend }}</p>
     </section>
 
-    <section class="success" v-else>
-        <section>
-            <p>Your current email is: {{ currentEmail }} </p>
-        </section>
+    <section class="retrieve-success" v-else>
+        <h1>Change Email</h1>
         <form @submit.prevent="sendCode()">
             <ul>
                 <li>
                     <label for="new-email">New Email: </label>
-                    <input type="email" name="new-email" id="new-email" required v-model="emailInput.new_email">
+                    <input type="email" name="new-email" id="new-email" required v-model="emailInput.new_email" :placeholder="`${ currentEmail }`">
                 </li>
                 <li>
                     <button type="submit" :class="{ 'is-loading': isLoadingSendCode }">
@@ -42,7 +39,7 @@
             </ul>
         </form>
 
-        <section :class="{ 'feedback-success': feedbackFromBackendSuccess, 'feedback-fail': !feedbackFromBackendSuccess }">
+        <section class="feedback" :class="{ 'success': feedbackFromBackendSuccess, 'fail': !feedbackFromBackendSuccess }" ref="feedbackSection">
             <p>{{ feedbackFromBackend }}</p>
         </section>
     </section>
@@ -54,7 +51,7 @@
 <script setup>
 import axios from 'axios';
 import { useUserStore } from '@/stores/user';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, nextTick } from 'vue';
 
 // Initialize variables
 const user = useUserStore();
@@ -64,6 +61,7 @@ const isLoadingVerifyCode = ref(false);
 const isLoadingPage = ref(false);
 const retrieveResourceFail = ref(false);
 const feedbackFromBackend = ref("");
+const feedbackSection = ref(null);
 const feedbackFromBackendSuccess = ref(false);
 const emailInput = reactive({
     new_email: "",
@@ -88,6 +86,9 @@ const sendCode = async () => {
         console.error(err);
         feedbackFromBackend.value = err.response.data.message;
         feedbackFromBackendSuccess.value = false;
+
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
 
     } finally {
         isLoadingSendCode.value = false;
@@ -120,6 +121,9 @@ const verifyCode = async () => {
         console.error(err);
         feedbackFromBackend.value = err.response.data.message;
         feedbackFromBackendSuccess.value = false;
+
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
 
     } finally {
         isLoadingVerifyCode.value = false;
@@ -160,34 +164,77 @@ onMounted(async () => {
 
 
 <style scoped>
-.email-change-component {
-    border: 1px solid rgb(124, 0, 128);
-    border-radius: 5px;
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
 }
+
+h1, .feedback {
+    text-align: center;
+}
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
 }
 
-.feedback-fail {
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input, textarea, select {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.fail {
     color: red;
 }
 
-.feedback-success {
+.success {
     color: green;
-}
-
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
 }
 </style>

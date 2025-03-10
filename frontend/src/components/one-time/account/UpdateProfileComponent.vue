@@ -1,20 +1,20 @@
 <template>
 <section class="update-account-information">
-    <h2>Update Profile Information</h2>
     <section class="loader" v-if="isLoadingComponent">
         <p></p>
     </section>
 
-    <section :class="{ 'feedback-fail': !feedbackFromBackend.success }" v-else-if="retrieveResourcesFail">
+    <section class="retrieve-fail"v-else-if="retrieveResourcesFail">
         <p>{{ feedbackFromBackend.message }}</p>
     </section>
 
-    <section class="success" v-else>
+    <section class="retrieve-success" v-else>
+        <h1>Update Profile</h1>
         <form @submit.prevent="updateProfileInformation()">
             <ul>
                 <li>
                     <label for="first-name">First Name: </label>
-                    <input type="text" name="first-name" id="first-name" required v-model="currentUserInformation.name.first">
+                    <input type="text" name="first-name" id="first-name" required v-model="currentUserInformation.name.first" placeholder="Required">
                 </li>
                 <li>
                     <label for="initial">Initial: </label>
@@ -22,29 +22,29 @@
                 </li>
                 <li>
                     <label for="last-name">Last Name: </label>
-                    <input type="text" name="last-name" id="last-name" required v-model="currentUserInformation.name.last">
+                    <input type="text" name="last-name" id="last-name" required v-model="currentUserInformation.name.last" placeholder="Required">
                 </li>
                 <li>
                     <label for="address">Address: </label>
-                    <input type="text" name="address" id="address" required v-model="currentUserInformation.location.address">
+                    <input type="text" name="address" id="address" required v-model="currentUserInformation.location.address" placeholder="Required"> 
                 </li>
                 <li>
                     <label for="city">City: </label>
-                    <input type="text" name="city" id="city" required v-model="currentUserInformation.location.city">
+                    <input type="text" name="city" id="city" required v-model="currentUserInformation.location.city" placeholder="Required">
                 </li>
                 <li>
                     <label for="state">State: </label>
-                    <select name="state" id="state" required v-model="currentUserInformation.location.state">
+                    <select name="state" id="state" required v-model="currentUserInformation.location.state" placeholder="Required">
                         <option v-for="state in statesList" :key="state.abbreviation" :value="state.abbreviation">{{ state.name }}</option>
                     </select>
                 </li>
                 <li>
                     <label for="zip">Zip: </label>
-                    <input type="text" name="zip" id="zip" v-model="currentUserInformation.location.zip" @input="validateZip" pattern="^\d{5}$" maxlength="5" required>
+                    <input type="text" name="zip" id="zip" v-model="currentUserInformation.location.zip" @input="validateZip" pattern="^\d{5}$" maxlength="5" required placeholder="Required">
                 </li>
                 <li>
                     <label for="currency_code">Preferred Currency: </label>
-                    <select name="currency_code" id="currency_code" required v-model="currentUserInformation.currency.code">
+                    <select name="currency_code" id="currency_code" required v-model="currentUserInformation.currency.code" placeholder="Required">
                         <option v-for="currency in currencyOptions" :key="currency.code" :value="currency.code">{{ currency.name }}</option>
                     </select>
                 </li>
@@ -57,7 +57,7 @@
             </ul>
         </form>
 
-        <section class="feedback" :class=" { 'feedback-fail': !feedbackFromBackend.success }">
+        <section class="feedback" ref="feedbackSection">
             <p>{{ feedbackFromBackend.message }}</p>
         </section>
     </section>
@@ -69,7 +69,7 @@
 <script setup>
 import axios from 'axios';
 import { useUserStore } from '@/stores/user';
-import { onMounted, ref, reactive, computed } from 'vue';
+import { onMounted, ref, reactive, computed, nextTick } from 'vue';
 import { statesList } from '@/assets/misc-scripts/state-list';
 
 // Initialize variables
@@ -77,6 +77,7 @@ const user = useUserStore();
 const retrieveResourcesFail = ref(false);
 const isLoadingUpdateProfile = ref(false);
 const isLoadingComponent = ref(false);
+const feedbackSection = ref(null);
 const feedbackFromBackend = reactive({
     message: '',
     success: false
@@ -194,6 +195,10 @@ const updateProfileInformation = async (req, res) => {
         feedbackFromBackend.message = err.response.data.message;
         feedbackFromBackend.success = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+
     } finally {
         isLoadingUpdateProfile.value = false;
 
@@ -210,34 +215,89 @@ onMounted(async () => {
 
 
 <style scoped>
-.update-account-information {
-    border: 1px solid green;
-    border-radius: 5px;
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
 }
+
+h1, p {
+    text-align: center;
+}
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
 }
 
-.feedback-fail {
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input, textarea, select {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.feedback {
     color: red;
 }
 
-.feedback-success {
-    color: green;
-}
+/* Laptop and above:*/
+@media screen and (min-width: 768px) {
+    ul {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+        gap: 20px 30px; /* Adjust spacing */
+        inline-size: 700px; /* Adjust width for better alignment */
+    }
 
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
+    /* Make the button full width in a single column */
+    li:last-child {
+        grid-column: span 2;
+        text-align: center;
+    }
 }
 </style>

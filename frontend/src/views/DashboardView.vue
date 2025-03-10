@@ -59,6 +59,8 @@ ul {
     justify-content: center;
     align-content: center;
     margin-block-start: 20px;
+    column-gap: 10px;
+    row-gap: 10px;
 }
 
 button {
