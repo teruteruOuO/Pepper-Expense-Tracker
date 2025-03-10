@@ -1,25 +1,22 @@
 <template>
 <section class="update-transaction-component">
-    <h2>Update Transaction Component</h2>
     <section class="loader" v-if="isLoadingPage">
     </section>
 
-    <section :class="{ 'feedback-fail': !feedBackFromBackend.success }" v-else-if="retrieveResourcesFail">
+    <section class="retrieve-fail" v-else-if="retrieveResourcesFail">
         <p>{{ feedBackFromBackend.message }}</p>
     </section>
 
-    <section class="resources-retrieve-success" v-else>
+    <section class="retrieve-success" v-else>
+        <h1>Update Transaction</h1>
         <form @submit.prevent="updateTransactionInstance()">
             <ul>
                 <li>
-                    <p>Enter values in {{ currencySettings.name }} {{ currencySettings.sign }}</p>
-                </li>
-                <li v-if="transactionInstanceInformation.transaction.type === 'expense'">
-                    <p>This expense is {{ transactionInstanceInformation.transaction.resolved ? 'Resolved (Paid)' : 'Unresolved (Unpaid)' }}</p>
-                </li>
-                <li>
                     <label for="transaction-name-update">Name: </label>
                     <input type="text" name="transaction-name-update" id="transaction-name-update" required v-model="transactionInstanceInformation.transaction.name">
+                    <p v-if="transactionInstanceInformation.transaction.type === 'expense'">
+                        This expense is {{ transactionInstanceInformation.transaction.resolved ? 'Resolved (Paid)' : 'Unresolved (Unpaid)' }}
+                    </p>
                 </li>
                 <li>
                     <label for="transaction-description-update">Description: </label><br>
@@ -27,8 +24,8 @@
                     </textarea>
                 </li>
                 <li>
-                    <label for="transaction-amount-update">Amount: {{ currencySettings.sign }}</label>
-                    <input type="number" name="transaction-amount-update" id="transaction-amount-update" step="0.01" v-model="transactionInstanceInformation.transaction.amount" required>
+                    <label for="transaction-amount-update">Amount: </label>
+                    <input type="number" name="transaction-amount-update" id="transaction-amount-update" step="0.01" v-model="transactionInstanceInformation.transaction.amount" required :placeholder="`${currencySettings.name} (${currencySettings.sign})`">
                 </li>
                 <li>
                     <label for="transaction-type-update">Type: </label>
@@ -59,19 +56,19 @@
                         </option>
                     </select>
                 </li>
-                <li>
+                <li class="button">
                     <button type="submit" :class="{ 'is-loading': isLoadingUpdate}">
                         <span v-if="!isLoadingUpdate">Update</span>
                         <span v-else>Loading...</span>
                     </button>
                 </li>
-                <li>
+                <li class="button">
                     <button type="button" @click="deleteTransactionInstance()" :class="{ 'is-loading': isLoadingDelete }">
                         <span v-if="!isLoadingDelete">Delete</span>
                         <span v-else>Deleting...</span>
                     </button>
                 </li>
-                <li>
+                <li class="button">
                     <button 
                     type="button" 
                     @click="changeTransactionStatus()" 
@@ -88,7 +85,7 @@
             </ul>
         </form>
 
-        <section :class="{ 'feedback-fail': !feedBackFromBackend.success }">
+        <section :class="{ 'feedback': !feedBackFromBackend.success }" ref="feedbackSection">
             <p>{{ feedBackFromBackend.message }}</p>
         </section>
     </section>
@@ -98,7 +95,7 @@
 
 <script setup>
 import axios from 'axios';
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, nextTick } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -108,6 +105,7 @@ const isLoadingUpdate = ref(false);
 const isLoadingDelete = ref(false);
 const isLoadingResolveStatus = ref(false);
 const retrieveResourcesFail = ref(false);
+const feedbackSection = ref(null);
 const feedBackFromBackend = reactive({
     message: '',
     success: false
@@ -256,6 +254,9 @@ const updateTransactionInstance = async () => {
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoadingUpdate.value = false;
 
@@ -286,6 +287,9 @@ const deleteTransactionInstance = async () => {
         console.error(err);
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
+
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
 
     } finally {
         isLoadingDelete.value = false;
@@ -330,34 +334,91 @@ onMounted(async () => {
 
 
 <style scoped>
-.update-transaction-component {
-    border-radius: 5px;
-    border: 1px solid rgb(14, 73, 202);
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
+    text-align: center;
 }
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
 }
 
-.feedback-fail {
-    color: red;
-}
-
-.feedback-success {
-    color: green;
-}
-
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
     cursor: not-allowed;
+}
+
+input, textarea, select {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.feedback {
+    color: red;
+    text-align: center;
+}
+
+/* Laptop and above:*/
+@media screen and (min-width: 768px) {
+    .update-transaction-component {
+        margin-block-start: 100px;
+    }
+
+    ul {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+        gap: 20px 30px; /* Adjust spacing */
+        inline-size: 700px; /* Adjust width for better alignment */
+    }
+
+    /* Make the button full width in a single column */
+    li.button {
+        grid-column: span 2;
+        text-align: center;
+    }
 }
 </style>
