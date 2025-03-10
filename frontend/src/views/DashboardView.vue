@@ -3,12 +3,12 @@
     <section class="buttons">
         <ul>
             <li>
-                <button type="button" class="monthly-summary" @click="switchComponent(MonthlySummaryComponent)">
+                <button type="button" class="monthly-summary" @click="switchComponent('MonthlySummaryComponent')">
                     Monthly Summary
                 </button>
             </li>
             <li>
-                <button type="button" class="deadlines" @click="switchComponent(DeadlineComponent)">
+                <button type="button" class="deadlines" @click="switchComponent('DeadlineComponent')">
                     Deadlines
                 </button>
             </li>
@@ -21,16 +21,31 @@
 <script setup>
 import MonthlySummaryComponent from '@/components/one-time/dashboard/monthly-summary/MonthlySummaryComponent.vue';
 import DeadlineComponent from '@/components/one-time/dashboard/deadlines/DeadlineComponent.vue';
-import { shallowRef  } from 'vue';
+import { ref, onMounted } from 'vue';
 
-const currentComponent = shallowRef(MonthlySummaryComponent);
-const switchComponent = (component) => {
-    if (component == MonthlySummaryComponent) {
-        currentComponent.value = MonthlySummaryComponent
-    } else {
-        currentComponent.value = DeadlineComponent
+// Map component names to actual component objects
+const componentMap = {
+    MonthlySummaryComponent,
+    DeadlineComponent
+};
+
+// Retrieve stored component or default to MonthlySummaryComponent
+const storedComponent = localStorage.getItem('selectedDashboardComponent') || 'MonthlySummaryComponent';
+const currentComponent = ref(componentMap[storedComponent]);
+
+// Function to switch components and store selection
+const switchComponent = (componentName) => {
+    currentComponent.value = componentMap[componentName];
+    localStorage.setItem('selectedDashboardComponent', componentName);
+};
+
+// Ensure selected component persists on page reload
+onMounted(() => {
+    const savedComponent = localStorage.getItem('selectedDashboardComponent');
+    if (savedComponent && componentMap[savedComponent]) {
+        currentComponent.value = componentMap[savedComponent];
     }
-}
+});
 </script>
 
 

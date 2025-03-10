@@ -140,7 +140,10 @@ span {
 }
 
 ::v-deep(tbody tr:hover) {
-    background-color: pink;
+    background:
+        linear-gradient(to bottom, white, rgba(255, 187, 198, 0.5), rgba(255, 255, 255, 0.7), white),  
+        linear-gradient(to right, white, rgb(255, 187, 198), white, rgb(255, 187, 198), white, rgb(255, 187, 198));
+    color: rgb(255, 14, 54);
 }
 
 .tables {

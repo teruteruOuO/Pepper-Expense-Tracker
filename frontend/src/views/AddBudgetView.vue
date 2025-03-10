@@ -1,6 +1,5 @@
 <template>
 <main class="add-budget-view">
-    <h1>Add Budget Page</h1>
     <AddBudgetComponent />
 </main>
 </template>

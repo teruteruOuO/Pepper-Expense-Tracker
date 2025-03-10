@@ -3,37 +3,33 @@
     <section class="loader" v-if="isLoadingPage">
     </section>
 
-    <section :class="{ 'feedback-fail': !feedBackFromBackend.success }" v-else-if="retrieveResourcesFail">
+    <section class="retrieve-fail" v-else-if="retrieveResourcesFail">
         <p>{{ feedBackFromBackend.message }}</p>
     </section>
 
-    <section class="success" v-else>
+    <section class="retrieve-success" v-else>
+        <h1>Update Budget</h1>
         <form @submit.prevent="updateBudgetInstance()">
             <ul>
-                <li>
-                    <p>Enter values in {{ currencySettings.name }} {{ currencySettings.sign }}</p>
-                    <p>Used amount can only be manipulated by adding or removing an expense transaction to this budget</p>
-                </li>
-                <li>
-                    <label for="budget-name-update">Name: </label>
-                    <input type="text" name="budget-name-update" id="budget-name-update" v-model="budgetInstanceInformation.name" required>
-                </li>
-                <li>
-                    <label for="budget-description-update">Description: </label><br>
-                    <textarea id="budget-description-update" v-model="budgetInstanceInformation.description" placeholder="Enter description...">
-                    </textarea>
-                </li>
                 <li>
                     <p>Total used amount: {{ currencySettings.sign }}{{ budgetInstanceInformation.amount.used.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</p>
                 </li>
                 <li>
-                    <label for="budget-limit-amount-update">Limit Amount: {{ currencySettings.sign }}</label>
-                    <input type="number" name="budget-limit-amount-update" id="budget-limit-amount-update" v-model="budgetInstanceInformation.amount.limit" step="0.01" required>
+                    <label for="budget-progress-update">Progress: </label>
+                    <meter :value="budgetInstanceInformation.progress" min="0" max="100" low="25" high="75" optimum="0" name="budget-progress-update" id="budget-progress-update">{{ budgetInstanceInformation.progress }}</meter> <span> {{ budgetInstanceInformation.progress.toFixed(2) }}%</span>
                 </li>
                 <li>
-                    <label for="budget-progress-update">Progress: </label>
-                    <meter :value="budgetInstanceInformation.progress" min="0" max="100" low="25" high="75" optimum="0" name="budget-progress-update" id="budget-progress-update">{{ budgetInstanceInformation.progress }}</meter> 
-                    <span> {{ budgetInstanceInformation.progress.toFixed(2) }}%</span>
+                    <label for="budget-name-update">Name: </label>
+                    <input type="text" name="budget-name-update" id="budget-name-update" v-model="budgetInstanceInformation.name" required placeholder="Required">
+                </li>
+                <li>
+                    <label for="budget-description-update">Description: </label><br>
+                    <textarea id="budget-description-update" v-model="budgetInstanceInformation.description">
+                    </textarea>
+                </li>
+                <li>
+                    <label for="budget-limit-amount-update">Limit Amount: {{ currencySettings.sign }}</label>
+                    <input type="number" name="budget-limit-amount-update" id="budget-limit-amount-update" v-model="budgetInstanceInformation.amount.limit" step="0.01" required :placeholder="`${currencySettings.name} (${currencySettings.sign})`">
                 </li>
                 <li>
                     <label for="budget-start-date-update">Start Date: </label>
@@ -58,7 +54,7 @@
             </ul>
         </form>
 
-        <section :class="{ 'feedback-fail': !feedBackFromBackend.success, 'feedback-success': feedBackFromBackend.success }">
+        <section class="feedback" :class="{ 'fail': !feedBackFromBackend.success, 'success': feedBackFromBackend.success }" ref="feedbackSection">
             <p>{{  feedBackFromBackend.message }}</p>
         </section>
     </section>
@@ -68,7 +64,7 @@
 
 <script setup>
 import axios from 'axios';
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, nextTick } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -77,6 +73,7 @@ const isLoadingPage = ref(false);
 const isLoadingUpdate = ref(false);
 const isLoadingDelete = ref(false);
 const retrieveResourcesFail = ref(false);
+const feedbackSection = ref(null);
 const feedBackFromBackend = reactive({
     message: '',
     success: false
@@ -188,6 +185,9 @@ const updateBudgetInstance = async () => {
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoadingUpdate.value = false;
 
@@ -219,6 +219,9 @@ const deleteBudgetInstance = async () => {
         feedBackFromBackend.message = err.response.data.message;
         feedBackFromBackend.success = false;
 
+        await nextTick();
+        feedbackSection.value?.scrollIntoView({ behavior: "smooth", block: "center" });
+
     } finally {
         isLoadingDelete.value = false;
         
@@ -232,34 +235,84 @@ onMounted(async () => {
 
 
 <style scoped>
-.update-budget-component {
-    border-radius: 5px;
-    border: 1px solid rgb(14, 73, 202);
+h1 {
+    margin-block-start: 30px;
+    margin-block-end: 30px;
 }
+
+h1, p {
+    text-align: center;
+}
+
+form {
+    display: contents;
+}
+
+/* Flex Layout start */
+ul {
+    /* Flex parent */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    gap: 20px 20px;
+
+    inline-size: 325px;
+    margin: 0 auto;
+    margin-block-end: 20px;
+}
+
+li {
+    /* Flex children */
+    margin: 0 auto;
+}
+/* Flex Layout end */
 
 button {
     border: 1px solid black;
     border-radius: 5px;
-    background-color: yellow;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+    background-color: #FFD0D8;
 }
 
-button:active {
-    background-color: rgb(94, 94, 30);
-    color: white;
+button:focus, button:hover {
+    background-color: rgb(255, 225, 230);
+    color: rgb(59, 59, 59);
+    border-color: rgb(59, 59, 59);
 }
 
-.feedback-fail {
+button:active, .is-loading {
+    color: rgb(102, 101, 101);
+    border-color: rgb(117, 117, 117);
+    cursor: not-allowed;
+}
+
+input, textarea {
+    display: block;
+    border-radius: 5px;
+    inline-size: 312px;
+    block-size: 48px;
+    border: 1px solid black;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.fail {
     color: red;
 }
 
-.feedback-success {
+.success {
     color: green;
 }
 
-/* style for isLoading variables */
-.is-loading {
-    background-color: rgb(94, 94, 30);
-    color: gray;
-    cursor: not-allowed;
+/* Laptop and above*/
+@media screen and (min-width: 768px) {
+    .update-budget-component {
+        margin-block-start: 70px;
+    }
 }
 </style>
