@@ -178,5 +178,11 @@ span {
     .tables {
         grid-template-columns: repeat(2, 1fr); /* Two equal columns */
     }
+
+    /* Ensure single component takes full width and is centered */
+    .tables:has(:only-child) {
+        display: flex;
+        justify-content: center; /* Horizontally center */
+    }
 }
 </style>
