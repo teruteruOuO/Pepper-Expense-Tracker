@@ -162,7 +162,7 @@ router.get(`/monthly-summary/:username`, authorizeToken, async (req, res) => {
         }
 
         // Retrieve the expense spending by category for the current month for the user
-        selectQuery = "SELECT ca.category_name, ROUND(SUM((transaction_amount * dollar_to_currency)), 2) AS total_amount FROM user u LEFT JOIN transaction t ON u.user_id = t.user_id LEFT JOIN currency c ON u.currency_code = c.currency_code LEFT JOIN category ca ON t.category_id = ca.category_id WHERE user_username = ? AND transaction_type = 'expense' AND MONTH(t.transaction_date) = MONTH(CURRENT_DATE) AND YEAR(t.transaction_date) = YEAR(CURRENT_DATE) GROUP BY ca.category_id;";
+        selectQuery = "SELECT ca.category_name, ROUND(SUM((transaction_amount * dollar_to_currency)), 2) AS total_amount FROM user u LEFT JOIN transaction t ON u.user_id = t.user_id LEFT JOIN currency c ON u.currency_code = c.currency_code LEFT JOIN category ca ON t.category_id = ca.category_id WHERE user_username = ? AND transaction_type = 'expense' AND MONTH(t.transaction_date) = MONTH(CURRENT_DATE) AND YEAR(t.transaction_date) = YEAR(CURRENT_DATE) GROUP BY ca.category_id ORDER BY total_amount DESC;";
         resultQuery = await executeReadQuery(selectQuery, [usernameFromParameter]);
         if (!resultQuery.length) {
             Logger.log(`Seems like ${usernameFromParameter} hasn't recorded any expense transactions for this month`);

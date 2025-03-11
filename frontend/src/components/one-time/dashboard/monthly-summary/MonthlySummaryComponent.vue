@@ -15,7 +15,7 @@
 
     <section class="retrieve-success" v-else>
         <p>
-            Hello {{ user.userInformation.first_name }}! This is your summary for 
+            Hello {{ user.userInformation.first_name.toUpperCase() }}! This is your summary for 
             <span>
                 {{ new Date().toLocaleString('en-US', { month: 'long', timeZone: 'UTC' }) }} 
             </span>

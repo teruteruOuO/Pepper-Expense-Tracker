@@ -15,7 +15,7 @@
 
     <section class="retrieve-success" v-else>
         <p>
-            {{ user.userInformation.first_name }}, these are the records that are due within <span>
+            {{ user.userInformation.first_name.toUpperCase() }}, these are the records that are due within <span>
                 30 days.
             </span>
         </p>
