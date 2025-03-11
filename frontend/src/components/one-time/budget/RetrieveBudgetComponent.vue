@@ -160,7 +160,7 @@ const computedBudgets = computed(() => {
     });
 });
 
-// Route to update page for each savings
+// Route to update page for each budget
 const enterBudget = (budget_id) => {
     router.push({ name: 'update-budget', params: { budget_id } });
 }

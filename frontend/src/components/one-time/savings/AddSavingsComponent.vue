@@ -226,7 +226,7 @@ textarea {
 /* Laptop and above*/
 @media screen and (min-width: 768px) {
     .add-savings-component {
-        margin-block-start: 100px;
+        margin-block-start: 50px;
     }
 }
 </style>

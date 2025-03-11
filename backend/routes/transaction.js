@@ -188,6 +188,13 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
                 res.status(400).json({ message: `Transaction's date must be within the budget's timeframe.` });
                 return;
             }
+
+            // Throw an error if the transaction's amount is at most 0
+            if (err.sqlMessage.includes('transaction_amount_check')) {
+                Logger.error(`Error: User's transaction amount is less than or equal to 0`);
+                res.status(400).json({ message: `Transaction amount must not be less than or equal to 0.` });
+                return;
+            }
         }
 
         res.status(500).json({ message: `A server error occured while adding a transaction information to your account. Please try again later.`});
@@ -400,6 +407,13 @@ router.put('/:username/:sequence', authorizeToken, async (req, res) => {
             if (err.sqlMessage.includes('Updated transaction date is outside of budget timeframe.')) {
                 Logger.error(`Error: User's date is outside of the budget's timeframe`);
                 res.status(400).json({ message: `Transaction's date must be within the budget's timeframe.` });
+                return;
+            }
+
+            // Throw an error if the transaction's amount is at most 0
+            if (err.sqlMessage.includes('transaction_amount_check')) {
+                Logger.error(`Error: User's transaction amount is less than or equal to 0`);
+                res.status(400).json({ message: `Transaction amount must not be less than or equal to 0.` });
                 return;
             }
 

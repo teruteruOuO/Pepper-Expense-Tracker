@@ -298,7 +298,7 @@ textarea {
 /* Laptop and above:*/
 @media screen and (min-width: 768px) {
     .add-transaction-component {
-        margin-block-start: 100px;
+        margin-block-start: 50px;
     }
 
     ul {

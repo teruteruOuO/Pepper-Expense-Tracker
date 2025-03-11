@@ -12,6 +12,11 @@
                     Transactions
                 </button>
             </li>
+            <li>
+                <button type="button" @click="router.go(-1)">
+                    ← Go Back
+                </button>
+            </li>
         </ul>
     </section>
     <component :is="currentComponent"/>
@@ -22,6 +27,8 @@
 import { ref, onMounted } from 'vue';
 import UpdateBudgetComponent from '@/components/one-time/budget/UpdateBudgetComponent.vue';
 import BudgetTransactionsComponent from '@/components/one-time/budget/BudgetTransactionsComponent.vue';
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 // Map component names to actual component objects
 const componentMap = {
@@ -58,6 +65,7 @@ ul {
     justify-content: center;
     align-content: center;
     margin-block-start: 20px;
+    flex-wrap: wrap;
     column-gap: 10px;
     row-gap: 10px;
 }

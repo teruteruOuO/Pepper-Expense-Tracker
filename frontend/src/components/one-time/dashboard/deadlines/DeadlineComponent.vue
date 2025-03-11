@@ -144,6 +144,7 @@ span {
         linear-gradient(to bottom, white, rgba(255, 187, 198, 0.5), rgba(255, 255, 255, 0.7), white),  
         linear-gradient(to right, white, rgb(255, 187, 198), white, rgb(255, 187, 198), white, rgb(255, 187, 198));
     color: rgb(255, 14, 54);
+    cursor: pointer;
 }
 
 .tables {

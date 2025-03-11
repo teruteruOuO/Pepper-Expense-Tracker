@@ -11,7 +11,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr v-for="savings in deadlines.dueSavings.value" :key="savings.sequence">
+            <tr v-for="savings in deadlines.dueSavings.value" :key="savings.sequence" @click="enterSaving(savings.sequence)">
                 <td>{{ savings.name }}</td>
                 <td>{{ savings.deadline }}</td>
                 <td><progress :id="`saving-progress-${savings.sequence}`" max="100" :value="savings.progress">{{ savings.progress }}</progress>{{ savings.progress }}%</td>
@@ -25,8 +25,15 @@
 
 <script setup>
 import { deadlineStore } from '@/stores/deadlines';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const deadlines = deadlineStore();
+
+// Route to update page for each savings
+const enterSaving = (sequence) => {
+    router.push({ name: 'update-savings', params: { sequence } });
+}
 </script>
 
 
