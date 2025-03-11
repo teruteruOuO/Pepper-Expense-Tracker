@@ -171,7 +171,7 @@ router.post('/sign-up/email-verification', async (req , res) => {
         };
         
         let mailOptions = {
-            from: `"Ube's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
+            from: `"Pepper's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
             to: "",
             subject: "Code for verifying your email",
             text: `Your code is: ${oneTimeCode}. The code will expire in 10 minutes. After that, you must resend a new code again.`
@@ -299,7 +299,7 @@ router.post('/sign-up/resend-code', async (req, res) => {
         };
         
         let mailOptions = {
-            from: `"Ube's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
+            from: `"Pepper's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
             to: email,
             subject: "Code for verifying your email",
             text: `Your new code is: ${oneTimeCode}. Remember that this code will expire in 10 minutes.`
@@ -500,7 +500,7 @@ router.post('/forgot-password/send-code', async (req, res) => {
         };
         
         let mailOptions = {
-            from: `"Ube's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
+            from: `"Pepper's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
             to: "",
             subject: "Forgot Password Code",
             text: `Your code is: ${code}. The code will expire in 10 minutes. After that, you must resend a new code again.`

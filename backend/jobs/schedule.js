@@ -31,7 +31,7 @@ cron.schedule(
             };
             
             let mailOptions = {
-                from: `"Ube's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
+                from: `"Pepper's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
                 to: "",
                 subject: "Daily Email Report",
                 html: ``
