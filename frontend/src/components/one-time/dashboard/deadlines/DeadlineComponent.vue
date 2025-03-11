@@ -176,13 +176,12 @@ span {
 /* Laptop and Above */
 @media screen and (min-width: 768px) {
     .tables {
-        grid-template-columns: repeat(2, 1fr); /* Two equal columns */
-    }
-
-    /* Ensure single component takes full width and is centered */
-    .tables:has(:only-child) {
-        display: flex;
-        justify-content: center; /* Horizontally center */
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); /* Adjust width dynamically */
+        gap: 20px;
+        max-inline-size: 1300px;
+        margin: 0 auto;
+        justify-content: center; /* Center content when there's only one child */
     }
 }
 </style>
