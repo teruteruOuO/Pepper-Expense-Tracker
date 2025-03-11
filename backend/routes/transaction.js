@@ -158,6 +158,8 @@ router.post(`/:username`, authorizeToken, async (req, res) => {
         date = convertFromInputDateTimeToMySQLTimestamp(date);
         budget = typeof budget === 'number' ? budget : null;
 
+        console.log(date);
+
         // Insert the inputs to the database
         insertQuery = "INSERT INTO transaction VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         Logger.log(insertQuery);

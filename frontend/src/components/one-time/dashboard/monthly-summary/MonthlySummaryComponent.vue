@@ -17,7 +17,7 @@
         <p>
             Hello {{ user.userInformation.first_name.toUpperCase() }}! This is your summary for 
             <span>
-                {{ new Date().toLocaleString('en-US', { month: 'long', timeZone: 'UTC' }) }} 
+                {{ new Date().toLocaleString('en-US', { month: 'long', timeZone: 'America/Chicago' }) }} 
             </span>
         </p>
         <section class="charts">
