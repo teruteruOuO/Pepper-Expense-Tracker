@@ -96,7 +96,7 @@ const userTransactionInput = reactive({
     transaction: {
         name: "",
         description: "",
-        amount: Number(),
+        amount: null,
         type: "",
         date: new Date(),
     },
