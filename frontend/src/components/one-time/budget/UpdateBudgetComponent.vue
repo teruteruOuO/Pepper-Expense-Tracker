@@ -36,7 +36,7 @@
                     <input type="date" name="budget-start-date-update" id="budget-start-date-update" v-model="budgetInstanceInformation.date.start" required>
                 </li>
                 <li>
-                    <label for="budget-end-date-add">End Date: </label>
+                    <label for="budget-end-date-update">End Date: </label>
                     <input type="date" name="budget-end-date-update" id="budget-end-date-update" v-model="budgetInstanceInformation.date.end" required>
                 </li>
                 <li>
