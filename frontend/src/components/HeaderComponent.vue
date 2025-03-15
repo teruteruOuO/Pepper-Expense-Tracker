@@ -1,10 +1,6 @@
 <template>
 <header class="header-component">
-    <div class="title">
-        <img src="../../public/favicon/android-chrome-192x192.png" alt="logo">
-        <h1>Pepper's Expense Tracker</h1>
-    </div>
-    
+    <h1>Pepper's Expense Tracker</h1>
     <nav>
         <ul v-if="isLoggedIn">
             <li><RouterLink :to="{ name: 'dashboard' }">Dashboard</RouterLink></li>
@@ -40,22 +36,6 @@ const isLoggedIn = computed(() => {
 /* Phone Vertical*/
 h1 {
     text-align: center;
-    flex-direction: row;
-    justify-content: center;
-    align-content: center;
-}
-
-.title {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-content: center;
-}
-
-img {
-    inline-size: 100px;
-    block-size: 100px;
-    display: none;
 }
 
 nav > ul {
@@ -110,15 +90,6 @@ a:active {
     border-color: white;
 }
 
-/* Phone horizontal*/
-@media screen and (min-width: 576px) {
-    img {
-        display: block;
-        inline-size: 75px;
-        block-size: 75px;
-    }
-}
-
 /* Laptop */
 @media screen and (min-width: 768px) {
     header {
@@ -136,14 +107,8 @@ a:active {
         flex-grow: 1;
     }
 
-    img {
-        inline-size: 100px;
-        block-size: 100px;
-    }
-
-    div.title {
-        margin-inline-start: 75px;
-        margin-inline-end: 75px;
+    h1 {
+        margin-inline-end: 100px;
     }
 
     ul {
