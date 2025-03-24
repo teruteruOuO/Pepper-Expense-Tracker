@@ -49,5 +49,10 @@ app.use('/api/dashboard', dashboard);
 
 // Start backend server operation
 app.listen(process.env.APP_PORT, () => {
-    console.log(`Server listening on port ${process.env.SERVER_URL}${process.env.APP_PORT}`)
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`DEVELOPMENT: Server listening on port ${process.env.SERVER_URL}${process.env.APP_PORT}`);
+    } else {
+        console.log(`PRODUCTION: Server listening on port ${process.env.SERVER_URL}`);
+    }
+    
 });

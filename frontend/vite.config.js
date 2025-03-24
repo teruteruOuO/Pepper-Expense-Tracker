@@ -4,6 +4,8 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueDevTools from 'vite-plugin-vue-devtools';
 import dotenv from 'dotenv';
+import removeConsole from 'vite-plugin-remove-console'
+
 
 dotenv.config();
 
@@ -12,6 +14,7 @@ export default defineConfig({
   plugins: [
     vue(),
     vueDevTools(),
+    removeConsole()
   ],
   resolve: {
     alias: {
