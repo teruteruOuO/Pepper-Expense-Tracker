@@ -117,6 +117,12 @@ const retrieveSavingsInstance = async () => {
         feedBackFromBackend.success = false;
         retrieveResourcesFail.value = true;
 
+        // If there's no resource (the savings doesn't exist for the user) then reroute them back to the savings page
+        if (err.response && err.response.status === 404) {
+            alert(feedBackFromBackend.message);
+            router.push({ name: 'savings' });
+        }
+
     } finally {
         isLoadingPage.value = false;
 
