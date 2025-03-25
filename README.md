@@ -22,11 +22,18 @@ Must have the following:
 8. Run the command "npm run frontend-install" to install frontend folder's dependencies.
 9. Redo Step 6
 
-# Running both Frontend and Backend
+# Running both Frontend (Development) and Backend
 1. Press CTRL + SHIFT + ` and VSCode terminal should open beneath the screen.
 2. Run the command "npm run backend" to begin the backend server's operation.
 3. Redo Step 1.
-4. Run the command "npm run frontend" to begin the frontend server's operation. A link should be revealed in the VSCode terminal.
+4. Run the command "npm run frontend-dev" to begin the frontend server's operation. A link should be revealed in the VSCode terminal.
+
+# Running both Frontend (Production Preview) and Backend
+1. Press CTRL + SHIFT + ` and VSCode terminal should open beneath the screen.
+2. Run the command "npm run backend" to begin the backend server's operation.
+3. Redo Step 1.
+4. Run the command "npm run frontend-build" to make a dist folder.
+5. Run the command "npm run frontend-prod" to begin the frontend server's operation. A link should be revealed in the VSCode terminal.
 
 # Testing changes 
 - Ensure each file is saved (CTRL + S) before checking/testing them.

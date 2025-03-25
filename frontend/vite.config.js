@@ -22,7 +22,9 @@ export default defineConfig({
     },
   },
   server: {
-    port: parseInt(process.env.VITE_FRONTEND_PORT), // Change to your desired port
-    host: process.env.VITE_FRONTEND_HOST, // Change this if you want to use a different hostname
+    port: parseInt(process.env.VITE_FRONTEND_PORT), 
+  },
+  preview: {
+    port: parseInt(process.env.VITE_FRONTEND_PORT)
   },
 })
