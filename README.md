@@ -50,17 +50,14 @@ Must have the following:
     NODE_ENV=development
     SERVER_URL=http://localhost:
 
-    # Database Variables
     DB_HOST=cis4375group8.cjywf3tcjcrp.us-east-1.rds.amazonaws.com
     DB_PORT=3306
     DB_USER=admin
     DB_PASSWORD=admingroup8
     DB_NAME=cis4375db
 
-    # Frontend Variable (Connecting Backend to Frontend)
     FRONTEND_URL=http://localhost:4000
 
-    # Email Variables
     NODEMAILER_EMAIL=project4375team8@gmail.com
     NODEMAILER_PASSWORD=bclp jlay hruz jcks"
 
