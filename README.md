@@ -43,21 +43,18 @@ Must have the following:
 # Environmental Files
 - Backend .env
     -   Create a ".env" file within the backend folder and copy these variables (Omit quotations)
-    "# Backend Variables
+    Backend Variables
     COOKIE_SECRET=56af22d41db2f7264a7b555c79caf340291ed69e549a8fb50472fa49a2451ee5
     JWT_SECRET=6c6073f9bc392245d7d6b45773ed4a7cfd436095023cf9716bfc0ad6dd3a4772
     APP_PORT=6056
     NODE_ENV=development
     SERVER_URL=http://localhost:
-
     DB_HOST=cis4375group8.cjywf3tcjcrp.us-east-1.rds.amazonaws.com
     DB_PORT=3306
     DB_USER=admin
     DB_PASSWORD=admingroup8
     DB_NAME=cis4375db
-
     FRONTEND_URL=http://localhost:4000
-
     NODEMAILER_EMAIL=project4375team8@gmail.com
     NODEMAILER_PASSWORD=bclp jlay hruz jcks"
 
@@ -66,5 +63,4 @@ Must have the following:
     "# Backend URL
     VITE_BACKEND_URL=http://localhost:6056
     VITE_NODE_ENV=development
-
     VITE_FRONTEND_PORT=4000"
