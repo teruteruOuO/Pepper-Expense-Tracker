@@ -98,7 +98,7 @@ router.beforeEach(async (to, from, next) => {
     const isLoggedIn = await authorizeToken();
 
     // Redirect to home when accessing login or sign up pages when user is already logged in
-    if ((to.name === 'login' || to.name === 'sign-up') && isLoggedIn) {
+    if ((to.name === 'login' || to.name === 'sign-up' || to.name === "forgot-password") && isLoggedIn) {
         next({ name: 'dashboard' });
     }
 
