@@ -450,7 +450,7 @@ router.post('/change-email/send-code/:username', authorizeToken, async (req, res
         };
         
         let mailOptions = {
-            from: `"Ube's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
+            from: `"Pepper's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
             to: "",
             subject: "Verification Code for Email Change",
             text: `Your code is: ${oneTimeCode}. Remember that this code will expire in 10 minutes.`
@@ -799,7 +799,7 @@ router.post('/delete-account/send-code/:username', authorizeToken, async (req, r
             tls: { rejectUnauthorized: false } // Bypass certificate issues
         };
         let mailOptions = {
-            from: `"Ube's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
+            from: `"Pepper's Expense Tracker" <${process.env.NODEMAILER_EMAIL}>`,
             to: "",
             subject: "Verification Code for Account Deletion.",
             text: `Your code is: ${oneTimeCode}. Remember that this code will expire in 10 minutes.`
