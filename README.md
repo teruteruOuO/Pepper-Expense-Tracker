@@ -1,5 +1,5 @@
-# Paws-and-Whiskers-Inventory-Management
-An Intranet Site for Paws and Whiskers. This focuses on their inventory management system as well as logging user actions throughout the entire system
+# Pepper's Expense Tracker
+An Intranet Site for Peppers Restaurant. This allows the firm to enter and track their budget spending each month. Each restaurant location's manager owns an account that tracks the spending of the location they're managing.
 
 # Beware
 I am running this web application on a local network because I cannot mantain the monthly cost of keeping the servers running. Although I have an RDS running that keeps
