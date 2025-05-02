@@ -1,68 +1,29 @@
-# Project4375
-Fullstack application for CIS 4375
+# Paws-and-Whiskers-Inventory-Management
+An Intranet Site for Paws and Whiskers. This focuses on their inventory management system as well as logging user actions throughout the entire system
 
-# Warning
-Ensure you're always making a Private Branch first before starting on a feature.
+# Beware
+I am running this web application on a local network because I cannot mantain the monthly cost of keeping the servers running. Although I have an RDS running that keeps
+the database running nation-wide. Therefore, I am willing to share the environment variables for both backend and frontend if you ask for it. Contact me at 
+[**angeloangel1989@outlook.com**](**angeloangel1989@outlook.com**) for more information.
 
 # Requirements to Run the Application
-Must have the following: 
+Must have the following installed in your local machine:
 - VSCode
 - MySQL Community Edition
 - NodeJS
-- Git Installed
+- GitHub
 
 # Installing dependencies
-1. Must have NodeJS installed.
-2. Open VSCode.
-3. Press CTRL + SHIFT + ` and VSCode terminal should open beneath the screen.
-4. Ensure you're in the root folder (Terminal must say something like " C:\Something\Something\Project4375> ").
-5. Run the command "npm run backend-install" to install backend folder's dependencies.
-6. Kill the terminal where you ran this command by clicking the trash button on the bottom right.
-7. Redo Step 3.
-8. Run the command "npm run frontend-install" to install frontend folder's dependencies.
-9. Redo Step 6
+I have scripts that allow you to install dependencies. Just ensure that you're always running these scripts in the root folder of this repository
+```javascript
+"npm run backend-install" // Installs backend folder dependencies 
+"npm run frontend-install" // Installs frontend folder dependencies 
+```
 
-# Running both Frontend (Development) and Backend
-1. Press CTRL + SHIFT + ` and VSCode terminal should open beneath the screen.
-2. Run the command "npm run backend" to begin the backend server's operation.
-3. Redo Step 1.
-4. Run the command "npm run frontend-dev" to begin the frontend server's operation. A link should be revealed in the VSCode terminal.
-
-# Running both Frontend (Production Preview) and Backend
-1. Press CTRL + SHIFT + ` and VSCode terminal should open beneath the screen.
-2. Run the command "npm run backend" to begin the backend server's operation.
-3. Redo Step 1.
-4. Run the command "npm run frontend-build" to make a dist folder.
-5. Run the command "npm run frontend-prod" to begin the frontend server's operation. A link should be revealed in the VSCode terminal.
-
-# Testing changes 
-- Ensure each file is saved (CTRL + S) before checking/testing them.
-- Frontend: Simply refresh the webpage. If you still don't see the changes, kill the terminal associated with the frontend, then rerun frontend.
-- Backend: Must kill the terminal associated with the backend, then rerun backend.
-
-# Environmental Files
-- Backend .env
-    -   Create a ".env" file within the backend folder and copy these variables (Omit quotations)
-    "
-    COOKIE_SECRET=56af22d41db2f7264a7b555c79caf340291ed69e549a8fb50472fa49a2451ee5
-    JWT_SECRET=6c6073f9bc392245d7d6b45773ed4a7cfd436095023cf9716bfc0ad6dd3a4772
-    APP_PORT=6056
-    NODE_ENV=development
-    SERVER_URL=http://localhost:
-    DB_HOST=cis4375group8.cjywf3tcjcrp.us-east-1.rds.amazonaws.com
-    DB_PORT=3306
-    DB_USER=admin
-    DB_PASSWORD=admingroup8
-    DB_NAME=cis4375db
-    FRONTEND_URL=http://localhost:4000
-    NODEMAILER_EMAIL=project4375team8@gmail.com
-    NODEMAILER_PASSWORD=bclp jlay hruz jcks
-    "
-
-- Frontend .env
-    -   Create a ".env" file within the frontend folder and copy these variables (Omit quotations)
-    "
-    VITE_BACKEND_URL=http://localhost:6056
-    VITE_NODE_ENV=development
-    VITE_FRONTEND_PORT=4000
-    "
+# Running both Frontend and Backend in Development Mode
+I also have scripts that allow you to run either backend or frontend from the root folder of this repository. Just ensure you're running them on two separate terminals. You can add
+another terminal in VSCode just by pressing **CTRL** and **`** together.
+```javascript
+"npm run backend" //  Runs backend server
+"npm run frontend-dev" // Runs client server
+```
