@@ -1,0 +1,8 @@
+currency
+user
+one time code
+category
+budget
+transaction
+savings
+triggers
