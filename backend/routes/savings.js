@@ -328,6 +328,12 @@ router.put('/update-current-amount/:username/:sequence', authorizeToken, async (
             updatedCurrentAmount = current_amount + input;
         } else {
             updatedCurrentAmount = current_amount - input;
+
+            if (updatedCurrentAmount < 0) {
+                Logger.error('Error: User ended up with a negaive savings value');
+                res.status(403).json({ message: `This operation ended in a negative value (${current_amount} - ${input}) = ${updatedCurrentAmount}. Delete or make sure the amount doesn't result in this.` });
+                return;
+            }
         }
         
         // Retrieve the user's id and currency settings.
